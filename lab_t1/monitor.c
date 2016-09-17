@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <float.h>
 
 #ifndef __USE_MISC
 #define __USE_MISC 1
@@ -102,24 +103,45 @@ int main(int argc,char *argv[])
 	ifr.ifr_flags |= IFF_PROMISC;
 	ioctl(sockd, SIOCSIFFLAGS, &ifr);
 
+    double cnt_TOTAL = 0;
+    double minSize = DBL_MAX;
+    double maxSize = -DBL_MAX;
+    double totalSize = 0;
+    double cnt_ARP = 0;
+    double cnt_ARP_REQ = 0;
+    double cnt_ARP_REP = 0;
+    double cnt_ICMP = 0;
+    double cnt_ICMP_ECHO = 0;
+    double cnt_ICMP_REPLY = 0;
+    double cnt_UDP = 0;
+    double cnt_TCP = 0;
+
     system("clear");
 	// recepcao de pacotes
 	while (1) {
-   		recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
+   		ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
+        //printf("Packet size: %lu\n", pktSize);
+        cnt_TOTAL++;
+        totalSize = totalSize + pktSize;
+        if(minSize > pktSize)
+            minSize = pktSize;
+        if(maxSize < pktSize)
+            maxSize = pktSize;
+
         struct ether_header *etHdr = (struct ether_header *) buff1;
         enum etherpack_type pktype = getPackageType(etHdr->ether_type);
-        //system("clear");
+        system("clear");
         /*- Geral
-            - Apresentar min/max/média do tamanho dos pacotes recebidos
+            V Apresentar min/max/média do tamanho dos pacotes recebidos
         - Nível de Enlace
-            - Quantidade e porcentagem de ARP Requests e ARP Reply
+            V Quantidade e porcentagem de ARP Requests e ARP Reply
         - Nível de Rede
-            - Quantidade e porcentagem de pacotes ICMP
-            - Quantidade e porcentagem de ICMP Echo Request e ICMP Echo Reply
+            V Quantidade e porcentagem de pacotes ICMP
+            V Quantidade e porcentagem de ICMP Echo Request e ICMP Echo Reply
             - Lista com os 5 IPs mais acessados na rede
         - Nível de Transporte
-            - Quantidade e porcentagem de pacotes UDP
-            - Quantidade e porcentagem de pacotes TCP
+            V Quantidade e porcentagem de pacotes UDP
+            V Quantidade e porcentagem de pacotes TCP
             - Número de conexões TCP iniciadas
             - Lista com as 5 portas TCP mais acessadas
             - Lista com as 5 portas UDP mais acessadas
@@ -129,7 +151,6 @@ int main(int argc,char *argv[])
             - Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
             - Lista com os 5 sites mais acessados
         */
-        //printf("Packet size: %lu\n", sizeof(buff1));
         /*
         printf("Destination Address:   ");
         printMac(etHdr->ether_dhost);
@@ -151,12 +172,15 @@ int main(int argc,char *argv[])
                 int p = 14 + (ipPart->ip_hl*4);
                 switch (ipPart->ip_p) {
                     case 1:{
+                        cnt_ICMP++;
                         //printf("ICMP package\n");
                         //printf("IHL %d Start %d ICMP:\n", ipPart->ip_hl,p);
                         struct icmphdr *icmpPart = (struct icmphdr *)&buff1[p];
                         if (icmpPart->type == ICMP_ECHO) {
+                            cnt_ICMP_ECHO++;
                             //printf("ICMP echo\n");
                         } else if (icmpPart->type == ICMP_ECHOREPLY) {
+                            cnt_ICMP_REPLY++;
                             //printf("ICMP echo reply\n");
                         } else{
                             //printf("Unknow ICMP: %d\n", icmpPart->type);
@@ -165,16 +189,19 @@ int main(int argc,char *argv[])
                     }
                     case 6:{
                         //printf("TCP package\n");
+                        cnt_TCP++;
                         struct tcphdr *tcpPart = (struct tcphdr *)&buff1[p];
-                        printf("TCP Source %d\t\tDestination %d \n",tcpPart->th_sport,tcpPart->th_dport );
+                        //printf("TCP Source %d\t\tDestination %d \n",tcpPart->th_sport,tcpPart->th_dport );
                         break;
                     }
                     case 17:{
+                        cnt_UDP++;
                         //printf("UDP package\n");
                         break;
                     }
                     default:
-                        printf("IPv4 protocol %d\n", ipPart->ip_p);
+                        //printf("IPv4 protocol %d\n", ipPart->ip_p);
+                        break;
                 }
                 break;
             }
@@ -184,11 +211,40 @@ int main(int argc,char *argv[])
             }
             case ARP:{
                 //printf("Ethernet type hex:%x dec:%d is an ARP packet\n",ntohs(etHdr->ether_type),ntohs(etHdr->ether_type));
+                cnt_ARP++;
+                //count request and reply...
+                struct arphdr *arpPart = (struct arphdr *) &buff1[14];
+                //printf("ARP code: %d\n", arpPart->ar_op);
+                if(ntohs(arpPart->ar_op) == ARPOP_REQUEST){
+                    cnt_ARP_REQ++;
+                }else if(ntohs(arpPart->ar_op) == ARPOP_REPLY){
+                    cnt_ARP_REP++;
+                }
                 break;
             }
             default:
-                printf("Unknow package type hex:%x\tdec:%d\n", ntohs(etHdr->ether_type), ntohs(etHdr->ether_type));
+                //printf("Unknow package type hex:%x\tdec:%d\n", ntohs(etHdr->ether_type), ntohs(etHdr->ether_type));
                 break;
         }
+        //*
+        printf("TOTAL : %f\n", cnt_TOTAL);
+        printf("SIZE\n");
+        printf("\tMIN  : %f\n", minSize);
+        printf("\tMAX  : %f\n", maxSize);
+        printf("\tTOTAL: %f\n", totalSize);
+        printf("\tAVG  : %f\n", (totalSize/cnt_TOTAL));
+        printf("ARP   : %f (%0.00f%%)\n",cnt_ARP, (cnt_ARP/cnt_TOTAL)*100 );
+        if(cnt_ARP > 0){
+            printf("\tREQ  : %f (%0.00f%%)\n",cnt_ARP_REQ,(cnt_ARP_REQ/cnt_ARP)*100 );
+            printf("\tREPLY: %f (%0.00f%%)\n",cnt_ARP_REP,(cnt_ARP_REP/cnt_ARP)*100 );
+        }
+        printf("ICMP  : %f (%0.00f%%)\n",cnt_ICMP, (cnt_ICMP/cnt_TOTAL)*100 );
+        if(cnt_ICMP > 0){
+            printf("\tECHO : %f (%0.00f%%)\n",cnt_ICMP_ECHO,(cnt_ICMP_ECHO/cnt_ICMP)*100 );
+            printf("\tREPLY: %f (%0.00f%%)\n",cnt_ICMP_REPLY,(cnt_ICMP_REPLY/cnt_ICMP)*100 );
+        }
+        printf("UDP   : %f (%0.00f%%)\n",cnt_UDP,(cnt_UDP/cnt_TOTAL)*100 );
+        printf("TCP   : %f (%0.00f%%)\n",cnt_TCP,(cnt_TCP/cnt_TOTAL)*100 );
+        //*/
 	}
 }
