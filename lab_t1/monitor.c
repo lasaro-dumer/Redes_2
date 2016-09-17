@@ -57,7 +57,12 @@ void printMac(unsigned char *ptrMac){
         printf("%s%02x",(i == ETHER_ADDR_LEN) ? " " : ":",*ptr++);
     }while(--i>0);
 }
-
+/* about bytes conversion see: http://beej.us/guide/bgnet/output/html/multipage/htonsman.html
+htons() Host TO network Short
+htonl() Host TO network Long
+ntohs() Network TO host Short
+ntohl() Network TO host Long
+*/
 enum etherpack_type getPackageType(u_int16_t tp){
     if (ntohs(tp) == ETHERTYPE_IP)
     {
@@ -115,6 +120,7 @@ int main(int argc,char *argv[])
     double cnt_ICMP_REPLY = 0;
     double cnt_UDP = 0;
     double cnt_TCP = 0;
+    double cnt_TCP_ConnUP = 0;
 
     system("clear");
 	// recepcao de pacotes
@@ -130,7 +136,9 @@ int main(int argc,char *argv[])
 
         struct ether_header *etHdr = (struct ether_header *) buff1;
         enum etherpack_type pktype = getPackageType(etHdr->ether_type);
+        #ifndef DEBUG
         system("clear");
+        #endif
         /*- Geral
             V Apresentar min/max/média do tamanho dos pacotes recebidos
         - Nível de Enlace
@@ -142,7 +150,7 @@ int main(int argc,char *argv[])
         - Nível de Transporte
             V Quantidade e porcentagem de pacotes UDP
             V Quantidade e porcentagem de pacotes TCP
-            - Número de conexões TCP iniciadas
+            V Número de conexões TCP iniciadas
             - Lista com as 5 portas TCP mais acessadas
             - Lista com as 5 portas UDP mais acessadas
         - Nível de Aplicação
@@ -191,7 +199,10 @@ int main(int argc,char *argv[])
                         //printf("TCP package\n");
                         cnt_TCP++;
                         struct tcphdr *tcpPart = (struct tcphdr *)&buff1[p];
-                        //printf("TCP Source %d\t\tDestination %d \n",tcpPart->th_sport,tcpPart->th_dport );
+                        //printf("TCP Source %d\t\tDestination %d\n",ntohs(tcpPart->th_sport),ntohs(tcpPart->th_dport));
+                        if(tcpPart->syn == 1){
+                            cnt_TCP_ConnUP++;
+                        }
                         break;
                     }
                     case 17:{
@@ -227,6 +238,7 @@ int main(int argc,char *argv[])
                 break;
         }
         //*
+        #ifndef DEBUG
         printf("TOTAL : %f\n", cnt_TOTAL);
         printf("SIZE\n");
         printf("\tMIN  : %f\n", minSize);
@@ -245,6 +257,8 @@ int main(int argc,char *argv[])
         }
         printf("UDP   : %f (%0.00f%%)\n",cnt_UDP,(cnt_UDP/cnt_TOTAL)*100 );
         printf("TCP   : %f (%0.00f%%)\n",cnt_TCP,(cnt_TCP/cnt_TOTAL)*100 );
+        printf("\tConnections: %f\n",cnt_TCP_ConnUP );
+        #endif
         //*/
 	}
 }
