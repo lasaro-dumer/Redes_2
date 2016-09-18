@@ -34,6 +34,7 @@
 
 #include <netinet/ip_icmp.h> //header ICMP
 #include <netinet/tcp.h> //TCP header
+#include <netinet/udp.h> //UDP header
 
 #define BUFFSIZE 1518
 #define TRUE 1
@@ -121,6 +122,10 @@ int main(int argc,char *argv[])
     double cnt_UDP = 0;
     double cnt_TCP = 0;
     double cnt_TCP_ConnUP = 0;
+    double cnt_HTTP = 0;
+    double cnt_DNS = 0;
+    double cnt_HTTPS = 0;
+    double cnt_SOCKS = 0;
 
     system("clear");
 	// recepcao de pacotes
@@ -136,9 +141,6 @@ int main(int argc,char *argv[])
 
         struct ether_header *etHdr = (struct ether_header *) buff1;
         enum etherpack_type pktype = getPackageType(etHdr->ether_type);
-        #ifndef DEBUG
-        system("clear");
-        #endif
         /*- Geral
             V Apresentar min/max/média do tamanho dos pacotes recebidos
         - Nível de Enlace
@@ -154,9 +156,11 @@ int main(int argc,char *argv[])
             - Lista com as 5 portas TCP mais acessadas
             - Lista com as 5 portas UDP mais acessadas
         - Nível de Aplicação
-            - Quantidade e porcentagem de pacotes HTTP
-            - Quantidade e porcentagem de pacotes DNS
-            - Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
+            V Quantidade e porcentagem de pacotes HTTP      (TCP source port == 80)
+            V Quantidade e porcentagem de pacotes DNS       (UDP source port == 53)
+            1/2 Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
+                V    HTTPS (TCP source port == 443)
+                ?    SOCKS (TCP source port == 1080)
             - Lista com os 5 sites mais acessados
         */
         /*
@@ -203,11 +207,31 @@ int main(int argc,char *argv[])
                         if(tcpPart->syn == 1){
                             cnt_TCP_ConnUP++;
                         }
+                        if(ntohs(tcpPart->th_sport) == 80){
+                            cnt_HTTP++;
+                        }else if(ntohs(tcpPart->th_sport) == 443){
+                            cnt_HTTPS++;
+                        }else
+                        #ifndef DEBUG
+                        if(ntohs(tcpPart->th_sport) == 1080){
+                            cnt_SOCKS++;
+                        #else
+                        {
+                            //printf("TCP Source %d\t\tDestination %d\n",ntohs(tcpPart->th_sport),ntohs(tcpPart->th_dport));
+                        #endif
+                        }
                         break;
                     }
                     case 17:{
                         cnt_UDP++;
+                        struct udphdr *udpPart = (struct udphdr *)&buff1[p];
                         //printf("UDP package\n");
+                        if(ntohs(udpPart->uh_sport) == 53){
+                            cnt_DNS++;
+                        }
+                        #ifdef DEBUG
+                        printf("UDP Source %d\t\tDestination %d\n",ntohs(udpPart->uh_sport),ntohs(udpPart->uh_dport));
+                        #endif
                         break;
                     }
                     default:
@@ -239,6 +263,7 @@ int main(int argc,char *argv[])
         }
         //*
         #ifndef DEBUG
+        system("clear");
         printf("TOTAL : %f\n", cnt_TOTAL);
         printf("SIZE\n");
         printf("\tMIN  : %f\n", minSize);
@@ -256,8 +281,16 @@ int main(int argc,char *argv[])
             printf("\tREPLY: %f (%0.00f%%)\n",cnt_ICMP_REPLY,(cnt_ICMP_REPLY/cnt_ICMP)*100 );
         }
         printf("UDP   : %f (%0.00f%%)\n",cnt_UDP,(cnt_UDP/cnt_TOTAL)*100 );
+        if(cnt_UDP > 0){
+            printf("\tDNS : %f (%0.02f%%)\n",cnt_DNS,(cnt_DNS/cnt_UDP)*100 );
+        }
         printf("TCP   : %f (%0.00f%%)\n",cnt_TCP,(cnt_TCP/cnt_TOTAL)*100 );
         printf("\tConnections: %f\n",cnt_TCP_ConnUP );
+        if(cnt_TCP > 0){
+            printf("\tHTTP       : %f (%0.02f%%)\n",cnt_HTTP,(cnt_HTTP/cnt_TCP)*100 );
+            printf("\tHTTPS      : %f (%0.02f%%)\n",cnt_HTTPS,(cnt_HTTPS/cnt_TCP)*100 );
+            printf("\tSOCKS      : %f (%0.02f%%)\n",cnt_SOCKS,(cnt_SOCKS/cnt_TCP)*100 );
+        }
         #endif
         //*/
 	}
