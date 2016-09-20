@@ -264,32 +264,32 @@ int main(int argc,char *argv[])
         //*
         #ifndef DEBUG
         system("clear");
-        printf("TOTAL : %f\n", cnt_TOTAL);
+        printf("TOTAL : %.f\n", cnt_TOTAL);
         printf("SIZE\n");
-        printf("\tMIN  : %f\n", minSize);
-        printf("\tMAX  : %f\n", maxSize);
-        printf("\tTOTAL: %f\n", totalSize);
+        printf("\tMIN  : %.f\n", minSize);
+        printf("\tMAX  : %.f\n", maxSize);
+        printf("\tTOTAL: %.f\n", totalSize);
         printf("\tAVG  : %f\n", (totalSize/cnt_TOTAL));
-        printf("ARP   : %f (%0.00f%%)\n",cnt_ARP, (cnt_ARP/cnt_TOTAL)*100 );
+        printf("ARP   : %.f (%0.02f%%)\n",cnt_ARP, (cnt_ARP/cnt_TOTAL)*100 );
         if(cnt_ARP > 0){
-            printf("\tREQ  : %f (%0.00f%%)\n",cnt_ARP_REQ,(cnt_ARP_REQ/cnt_ARP)*100 );
-            printf("\tREPLY: %f (%0.00f%%)\n",cnt_ARP_REP,(cnt_ARP_REP/cnt_ARP)*100 );
+            printf("\tREQ  : %.f (%0.02f%%)\n",cnt_ARP_REQ,(cnt_ARP_REQ/cnt_ARP)*100 );
+            printf("\tREPLY: %.f (%0.02f%%)\n",cnt_ARP_REP,(cnt_ARP_REP/cnt_ARP)*100 );
         }
-        printf("ICMP  : %f (%0.00f%%)\n",cnt_ICMP, (cnt_ICMP/cnt_TOTAL)*100 );
+        printf("ICMP  : %.f (%0.02f%%)\n",cnt_ICMP, (cnt_ICMP/cnt_TOTAL)*100 );
         if(cnt_ICMP > 0){
-            printf("\tECHO : %f (%0.00f%%)\n",cnt_ICMP_ECHO,(cnt_ICMP_ECHO/cnt_ICMP)*100 );
-            printf("\tREPLY: %f (%0.00f%%)\n",cnt_ICMP_REPLY,(cnt_ICMP_REPLY/cnt_ICMP)*100 );
+            printf("\tECHO : %.f (%0.02f%%)\n",cnt_ICMP_ECHO,(cnt_ICMP_ECHO/cnt_ICMP)*100 );
+            printf("\tREPLY: %.f (%0.02f%%)\n",cnt_ICMP_REPLY,(cnt_ICMP_REPLY/cnt_ICMP)*100 );
         }
-        printf("UDP   : %f (%0.00f%%)\n",cnt_UDP,(cnt_UDP/cnt_TOTAL)*100 );
+        printf("UDP   : %.f (%0.02f%%)\n",cnt_UDP,(cnt_UDP/cnt_TOTAL)*100 );
         if(cnt_UDP > 0){
-            printf("\tDNS : %f (%0.02f%%)\n",cnt_DNS,(cnt_DNS/cnt_UDP)*100 );
+            printf("\tDNS : %.f (%0.02f%%)\n",cnt_DNS,(cnt_DNS/cnt_UDP)*100 );
         }
-        printf("TCP   : %f (%0.00f%%)\n",cnt_TCP,(cnt_TCP/cnt_TOTAL)*100 );
+        printf("TCP   : %.f (%0.02f%%)\n",cnt_TCP,(cnt_TCP/cnt_TOTAL)*100 );
         printf("\tConnections: %f\n",cnt_TCP_ConnUP );
         if(cnt_TCP > 0){
-            printf("\tHTTP       : %f (%0.02f%%)\n",cnt_HTTP,(cnt_HTTP/cnt_TCP)*100 );
-            printf("\tHTTPS      : %f (%0.02f%%)\n",cnt_HTTPS,(cnt_HTTPS/cnt_TCP)*100 );
-            printf("\tSOCKS      : %f (%0.02f%%)\n",cnt_SOCKS,(cnt_SOCKS/cnt_TCP)*100 );
+            printf("\tHTTP       : %.f (%0.02f%%)\n",cnt_HTTP,(cnt_HTTP/cnt_TCP)*100 );
+            printf("\tHTTPS      : %.f (%0.02f%%)\n",cnt_HTTPS,(cnt_HTTPS/cnt_TCP)*100 );
+            printf("\tSOCKS      : %.f (%0.02f%%)\n",cnt_SOCKS,(cnt_SOCKS/cnt_TCP)*100 );
         }
         #endif
         //*/
