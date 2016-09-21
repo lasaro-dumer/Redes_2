@@ -11,6 +11,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <float.h>
+#include <map>
+#include <string>
+#include <algorithm>
+#include <vector>
+#include <sstream>
+#include <iostream>
 
 #ifndef __USE_MISC
 #define __USE_MISC 1
@@ -42,6 +48,8 @@
 
 // Atencao!! Confira no /usr/include do seu sisop o nome correto
 // das estruturas de dados dos protocolos.
+
+using namespace std;
 
 unsigned char buff1[BUFFSIZE]; // buffer de recepcao
 
@@ -77,6 +85,16 @@ enum etherpack_type getPackageType(u_int16_t tp){
     }else {
         //return -1;
     }
+}
+
+bool cmp(pair<string,unsigned int> const & a, pair<string,unsigned int> const & b)
+{
+     return a.second != b.second?  a.second > b.second : a.first > b.first;
+}
+
+bool cmp2(pair<uint16_t,unsigned int> const & a, pair<uint16_t,unsigned int> const & b)
+{
+     return a.second != b.second?  a.second > b.second : a.first > b.first;
 }
 
 int main(int argc,char *argv[])
@@ -122,10 +140,15 @@ int main(int argc,char *argv[])
     double cnt_UDP = 0;
     double cnt_TCP = 0;
     double cnt_TCP_ConnUP = 0;
+    double cnt_TCPotherPort = 0;
+    double cnt_UDPotherPort = 0;
     double cnt_HTTP = 0;
     double cnt_DNS = 0;
     double cnt_HTTPS = 0;
     double cnt_SOCKS = 0;
+    map<string, unsigned int> IPsMap;
+    map<uint16_t, unsigned int> TCPports;
+    map<uint16_t, unsigned int> UDPports;
 
     system("clear");
 	// recepcao de pacotes
@@ -148,13 +171,13 @@ int main(int argc,char *argv[])
         - Nível de Rede
             V Quantidade e porcentagem de pacotes ICMP
             V Quantidade e porcentagem de ICMP Echo Request e ICMP Echo Reply
-            - Lista com os 5 IPs mais acessados na rede
+            V Lista com os 5 IPs mais acessados na rede
         - Nível de Transporte
             V Quantidade e porcentagem de pacotes UDP
             V Quantidade e porcentagem de pacotes TCP
             V Número de conexões TCP iniciadas
-            - Lista com as 5 portas TCP mais acessadas
-            - Lista com as 5 portas UDP mais acessadas
+            V Lista com as 5 portas TCP mais acessadas
+            V Lista com as 5 portas UDP mais acessadas
         - Nível de Aplicação
             V Quantidade e porcentagem de pacotes HTTP      (TCP source port == 80)
             V Quantidade e porcentagem de pacotes DNS       (UDP source port == 53)
@@ -180,6 +203,18 @@ int main(int argc,char *argv[])
                 printf("  Ethernet type hex:%x dec:%d is an IP packet\n",ntohs(etHdr->ether_type),ntohs(etHdr->ether_type));
                 printf("  Source IP:      %s\n",inet_ntoa(ipPart->ip_src));
                 printf("  Destination IP: %s\n",inet_ntoa(ipPart->ip_dst));
+                //*/
+                string sIP = inet_ntoa(ipPart->ip_src);
+                if(IPsMap.find(sIP) == IPsMap.end())
+                    IPsMap[sIP] = 1;
+                else
+                    IPsMap[sIP] = IPsMap[sIP]+1;
+                //*
+                string dIP = inet_ntoa(ipPart->ip_dst);
+                if(IPsMap.find(dIP) == IPsMap.end())
+                    IPsMap[dIP] = 1;
+                else
+                    IPsMap[dIP] = IPsMap[dIP]+1;
                 //*/
                 int p = 14 + (ipPart->ip_hl*4);
                 switch (ipPart->ip_p) {
@@ -207,19 +242,39 @@ int main(int argc,char *argv[])
                         if(tcpPart->syn == 1){
                             cnt_TCP_ConnUP++;
                         }
-                        if(ntohs(tcpPart->th_sport) == 80){
+
+                        uint16_t sTP = ntohs(tcpPart->th_sport);
+                        if(TCPports.find(sTP) == TCPports.end())
+                            TCPports[sTP] = 1;
+                        else
+                            TCPports[sTP] = TCPports[sTP]+1;
+
+                        if(sTP == 80){
                             cnt_HTTP++;
-                        }else if(ntohs(tcpPart->th_sport) == 443){
+                        }else if(sTP == 443){
                             cnt_HTTPS++;
-                        }else
-                        #ifndef DEBUG
-                        if(ntohs(tcpPart->th_sport) == 1080){
-                            cnt_SOCKS++;
-                        #else
+                        }else //if(sTP == 1080)
                         {
-                            //printf("TCP Source %d\t\tDestination %d\n",ntohs(tcpPart->th_sport),ntohs(tcpPart->th_dport));
-                        #endif
+                            //cnt_SOCKS++;
+                            cnt_TCPotherPort++;
                         }
+                        //*
+                        uint16_t dTP = ntohs(tcpPart->th_dport);
+                        if(TCPports.find(dTP) == TCPports.end())
+                            TCPports[dTP] = 1;
+                        else
+                            TCPports[dTP] = TCPports[dTP]+1;
+
+                        if(dTP == 80){
+                            cnt_HTTP++;
+                        }else if(dTP == 443){
+                            cnt_HTTPS++;
+                        }else //if(dTP == 1080)
+                        {
+                            //cnt_SOCKS++;
+                            cnt_TCPotherPort++;
+                        }
+                        //*/
                         break;
                     }
                     case 17:{
@@ -232,6 +287,31 @@ int main(int argc,char *argv[])
                         #ifdef DEBUG
                         printf("UDP Source %d\t\tDestination %d\n",ntohs(udpPart->uh_sport),ntohs(udpPart->uh_dport));
                         #endif
+
+                        uint16_t sUDP = ntohs(udpPart->uh_sport);
+                        if(UDPports.find(sUDP) == UDPports.end())
+                            UDPports[sUDP] = 1;
+                        else
+                            UDPports[sUDP] = UDPports[sUDP]+1;
+
+                        if(sUDP == 53){
+                            cnt_DNS++;
+                        }else{
+                            cnt_UDPotherPort++;
+                        }
+                        //*
+                        uint16_t dUDP = ntohs(udpPart->uh_dport);
+                        if(UDPports.find(dUDP) == UDPports.end())
+                            UDPports[dUDP] = 1;
+                        else
+                            UDPports[dUDP] = UDPports[dUDP]+1;
+
+                        if(dUDP == 53){
+                            cnt_DNS++;
+                        }else{
+                            cnt_UDPotherPort++;
+                        }
+                        //*/
                         break;
                     }
                     default:
@@ -282,15 +362,43 @@ int main(int argc,char *argv[])
         }
         printf("UDP   : %.f (%0.02f%%)\n",cnt_UDP,(cnt_UDP/cnt_TOTAL)*100 );
         if(cnt_UDP > 0){
-            printf("\tDNS : %.f (%0.02f%%)\n",cnt_DNS,(cnt_DNS/cnt_UDP)*100 );
+            printf("\tDNS   : %.f (%0.02f%%)\n",cnt_DNS,(cnt_DNS/(cnt_UDP*2))*100 );
+            printf("\tOther : %.f (%0.02f%%)\n",cnt_UDPotherPort,(cnt_UDPotherPort/(cnt_UDP*2))*100 );
         }
         printf("TCP   : %.f (%0.02f%%)\n",cnt_TCP,(cnt_TCP/cnt_TOTAL)*100 );
         printf("\tConnections: %f\n",cnt_TCP_ConnUP );
         if(cnt_TCP > 0){
-            printf("\tHTTP       : %.f (%0.02f%%)\n",cnt_HTTP,(cnt_HTTP/cnt_TCP)*100 );
-            printf("\tHTTPS      : %.f (%0.02f%%)\n",cnt_HTTPS,(cnt_HTTPS/cnt_TCP)*100 );
-            printf("\tSOCKS      : %.f (%0.02f%%)\n",cnt_SOCKS,(cnt_SOCKS/cnt_TCP)*100 );
+            printf("\tHTTP       : %.f (%0.02f%%)\n",cnt_HTTP,(cnt_HTTP/(cnt_TCP*2))*100 );
+            printf("\tHTTPS      : %.f (%0.02f%%)\n",cnt_HTTPS,(cnt_HTTPS/(cnt_TCP*2))*100 );
+            //printf("\tSOCKS      : %.f (%0.02f%%)\n",cnt_SOCKS,(cnt_SOCKS/(cnt_TCP*2))*100 );
+            printf("\tOther      : %.f (%0.02f%%)\n",cnt_TCPotherPort,(cnt_TCPotherPort/(cnt_TCP*2))*100 );
         }
+        printf("TOP 5 IPs\n");
+        vector< pair<string,unsigned int> > items;
+        copy(IPsMap.begin(), IPsMap.end(), back_inserter(items));
+        sort(items.begin(), items.end(), cmp);
+        int max = items.size() > 5 ? 5 : items.size();
+        printf("# Count IP\n");
+        for(int i = 0; i < max; ++i)
+            printf("%d %5d %s\n",(i+1),items[i].second,items[i].first.c_str());
+
+        printf("TOP 5 TCP ports\n");
+        vector< pair<uint16_t,unsigned int> > tcpPs;
+        copy(TCPports.begin(), TCPports.end(), back_inserter(tcpPs));
+        sort(tcpPs.begin(), tcpPs.end(), cmp2);
+        max = tcpPs.size() > 5 ? 5 : tcpPs.size();
+        printf("# Count Port\n");
+        for(int i = 0; i < max; ++i)
+            printf("%d %5d %d\n",(i+1),tcpPs[i].second,tcpPs[i].first);
+
+        printf("TOP 5 UDP ports\n");
+        vector< pair<uint16_t,unsigned int> > udpPs;
+        copy(UDPports.begin(), UDPports.end(), back_inserter(udpPs));
+        sort(udpPs.begin(), udpPs.end(), cmp2);
+        max = udpPs.size() > 5 ? 5 : udpPs.size();
+        printf("# Count Port\n");
+        for(int i = 0; i < max; ++i)
+            printf("%d %5d %d\n",(i+1),udpPs[i].second,udpPs[i].first);
         #endif
         //*/
 	}
