@@ -42,6 +42,8 @@
 #include <netinet/tcp.h> //TCP header
 #include <netinet/udp.h> //UDP header
 
+#include "dnsh.h"
+
 #define BUFFSIZE 1518
 #define TRUE 1
 #define FALSE 0
@@ -95,6 +97,37 @@ bool cmp(pair<string,unsigned int> const & a, pair<string,unsigned int> const & 
 bool cmp2(pair<uint16_t,unsigned int> const & a, pair<uint16_t,unsigned int> const & b)
 {
      return a.second != b.second?  a.second > b.second : a.first > b.first;
+}
+
+void doDNS(int pNet) {
+    int pDNS = pNet+8;
+    struct DNS_HEADER *dnsPart = (struct DNS_HEADER *)&buff1[pDNS];
+    #ifdef DEBUG
+    printf("DNS ID: %04X QR: %d OP: %d AA: %d TC: %d RD: %d ",ntohs(dnsPart->id),dnsPart->qr,dnsPart->opcode,dnsPart->aa,dnsPart->tc,dnsPart->rd);
+    printf("FLAGS: %02X%02X",buff1[pDNS+2],buff1[pDNS+3]);
+    int pQst = pDNS+12;
+    stringstream ss;
+    //questions
+    //
+    int next = pQst;
+    unsigned char cntC = buff1[next];
+    /*
+    printf(" Site: ");
+    while (cntC > 0) {
+        for (int i = 0; i < (next+cntC+1); i++) {
+            ss << (int)buff1[i];
+            //diouxXfeEgGcs,
+            //printf("%c",buff1[i]);
+        }
+        next = next+1+cntC;
+        cntC = buff1[next];
+    }
+    //ss << "teste.";
+    //unsigned char mc = 'w';
+    //ss << mc;*/
+    printf("%s",ss.str().c_str());
+    printf("\n");
+    #endif
 }
 
 int main(int argc,char *argv[])
@@ -182,8 +215,9 @@ int main(int argc,char *argv[])
             V Quantidade e porcentagem de pacotes HTTP      (TCP source port == 80)
             V Quantidade e porcentagem de pacotes DNS       (UDP source port == 53)
             1/2 Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
-                V    HTTPS (TCP source port == 443)
-                ?    SOCKS (TCP source port == 1080)
+                V   HTTPS (TCP source port == 443)
+                ?   SOCKS (TCP source port == 1080)
+                ?   DHCP (port 67 and 68)
             - Lista com os 5 sites mais acessados
         */
         /*
@@ -281,11 +315,8 @@ int main(int argc,char *argv[])
                         cnt_UDP++;
                         struct udphdr *udpPart = (struct udphdr *)&buff1[p];
                         //printf("UDP package\n");
-                        if(ntohs(udpPart->uh_sport) == 53){
-                            cnt_DNS++;
-                        }
                         #ifdef DEBUG
-                        printf("UDP Source %d\t\tDestination %d\n",ntohs(udpPart->uh_sport),ntohs(udpPart->uh_dport));
+                        //printf("UDP Source %d\t\tDestination %d\n",ntohs(udpPart->uh_sport),ntohs(udpPart->uh_dport));
                         #endif
 
                         uint16_t sUDP = ntohs(udpPart->uh_sport);
@@ -296,6 +327,7 @@ int main(int argc,char *argv[])
 
                         if(sUDP == 53){
                             cnt_DNS++;
+                            doDNS(p);
                         }else{
                             cnt_UDPotherPort++;
                         }
@@ -308,6 +340,7 @@ int main(int argc,char *argv[])
 
                         if(dUDP == 53){
                             cnt_DNS++;
+                            doDNS(p);
                         }else{
                             cnt_UDPotherPort++;
                         }
