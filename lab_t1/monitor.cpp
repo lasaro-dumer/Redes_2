@@ -42,6 +42,11 @@
 #include <netinet/tcp.h> //TCP header
 #include <netinet/udp.h> //UDP header
 
+#include "dnsh.h"
+#ifdef DNSSAMPLE
+#include "dnssample.h"
+#endif
+
 #define BUFFSIZE 1518
 #define TRUE 1
 #define FALSE 0
@@ -95,6 +100,45 @@ bool cmp(pair<string,unsigned int> const & a, pair<string,unsigned int> const & 
 bool cmp2(pair<uint16_t,unsigned int> const & a, pair<uint16_t,unsigned int> const & b)
 {
      return a.second != b.second?  a.second > b.second : a.first > b.first;
+}
+
+string getStringFromBuff(int start,int* stop){
+    stringstream ss;
+    int next = start;
+    unsigned char cntC = buff1[next];
+    while (cntC > 0) {
+        next++;
+        for (int i = next; i < (next+cntC); i++) {
+            ss << buff1[i];
+        }
+        next = next+cntC;
+        cntC = buff1[next];
+        if(cntC>0)
+            ss << ".";
+    }
+    next++;
+    *stop = next;
+    return ss.str();
+}
+
+void doDNS(int pNet) {
+    int pDNS = pNet+8;
+    struct DNS_HEADER *dnsPart = (struct DNS_HEADER *)&buff1[pDNS];
+    #ifdef DEBUG
+    printf("DNS ID: %04X QR %d OP %d AA %d TC %d RD %d RC %d ",ntohs(dnsPart->id),dnsPart->qr,dnsPart->opcode,dnsPart->aa,dnsPart->tc,dnsPart->rd,dnsPart->rcode);
+    printf("FLAGS: %02X%02X",buff1[pDNS+2],buff1[pDNS+3]);
+    printf(" QC %d AC %d",ntohs(dnsPart->q_count),ntohs(dnsPart->ans_count));
+    #endif
+    int pQst = pDNS+12;
+    int stop = pQst;
+    string site = getStringFromBuff(pQst,&stop);
+    struct QUESTION *qst = (struct QUESTION *)&buff1[stop];
+    #ifdef DEBUG
+    cout << " Site: " << site;
+    cout << " QTYPE: " << hex << ntohs(qst->qtype);
+    cout << endl;
+    #endif
+
 }
 
 int main(int argc,char *argv[])
@@ -153,7 +197,12 @@ int main(int argc,char *argv[])
     system("clear");
 	// recepcao de pacotes
 	while (1) {
-   		ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
+        #ifndef DNSSAMPLE
+        ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
+        #else
+        ssize_t pktSize = 121;
+        dnsResponseSample(&buff1[0]);
+        #endif
         //printf("Packet size: %lu\n", pktSize);
         cnt_TOTAL++;
         totalSize = totalSize + pktSize;
@@ -182,8 +231,9 @@ int main(int argc,char *argv[])
             V Quantidade e porcentagem de pacotes HTTP      (TCP source port == 80)
             V Quantidade e porcentagem de pacotes DNS       (UDP source port == 53)
             1/2 Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
-                V    HTTPS (TCP source port == 443)
-                ?    SOCKS (TCP source port == 1080)
+                V   HTTPS (TCP source port == 443)
+                ?   SOCKS (TCP source port == 1080)
+                ?   DHCP (port 67 and 68)
             - Lista com os 5 sites mais acessados
         */
         /*
@@ -281,11 +331,8 @@ int main(int argc,char *argv[])
                         cnt_UDP++;
                         struct udphdr *udpPart = (struct udphdr *)&buff1[p];
                         //printf("UDP package\n");
-                        if(ntohs(udpPart->uh_sport) == 53){
-                            cnt_DNS++;
-                        }
                         #ifdef DEBUG
-                        printf("UDP Source %d\t\tDestination %d\n",ntohs(udpPart->uh_sport),ntohs(udpPart->uh_dport));
+                        //printf("UDP Source %d\t\tDestination %d\n",ntohs(udpPart->uh_sport),ntohs(udpPart->uh_dport));
                         #endif
 
                         uint16_t sUDP = ntohs(udpPart->uh_sport);
@@ -296,6 +343,7 @@ int main(int argc,char *argv[])
 
                         if(sUDP == 53){
                             cnt_DNS++;
+                            doDNS(p);
                         }else{
                             cnt_UDPotherPort++;
                         }
@@ -308,6 +356,7 @@ int main(int argc,char *argv[])
 
                         if(dUDP == 53){
                             cnt_DNS++;
+                            doDNS(p);
                         }else{
                             cnt_UDPotherPort++;
                         }
