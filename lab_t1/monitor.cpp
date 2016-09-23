@@ -99,35 +99,42 @@ bool cmp2(pair<uint16_t,unsigned int> const & a, pair<uint16_t,unsigned int> con
      return a.second != b.second?  a.second > b.second : a.first > b.first;
 }
 
+string getStringFromBuff(int start,int* stop){
+    stringstream ss;
+    int next = start;
+    unsigned char cntC = buff1[next];
+    while (cntC > 0) {
+        next++;
+        for (int i = next; i < (next+cntC); i++) {
+            ss << buff1[i];
+        }
+        next = next+cntC;
+        cntC = buff1[next];
+        if(cntC>0)
+            ss << ".";
+    }
+    next++;
+    *stop = next;
+    return ss.str();
+}
+
 void doDNS(int pNet) {
     int pDNS = pNet+8;
     struct DNS_HEADER *dnsPart = (struct DNS_HEADER *)&buff1[pDNS];
     #ifdef DEBUG
     printf("DNS ID: %04X QR: %d OP: %d AA: %d TC: %d RD: %d ",ntohs(dnsPart->id),dnsPart->qr,dnsPart->opcode,dnsPart->aa,dnsPart->tc,dnsPart->rd);
     printf("FLAGS: %02X%02X",buff1[pDNS+2],buff1[pDNS+3]);
-    int pQst = pDNS+12;
-    stringstream ss;
-    //questions
-    //
-    int next = pQst;
-    unsigned char cntC = buff1[next];
-    /*
-    printf(" Site: ");
-    while (cntC > 0) {
-        for (int i = 0; i < (next+cntC+1); i++) {
-            ss << (int)buff1[i];
-            //diouxXfeEgGcs,
-            //printf("%c",buff1[i]);
-        }
-        next = next+1+cntC;
-        cntC = buff1[next];
-    }
-    //ss << "teste.";
-    //unsigned char mc = 'w';
-    //ss << mc;*/
-    printf("%s",ss.str().c_str());
-    printf("\n");
     #endif
+    int pQst = pDNS+12;
+    int stop = pQst;
+    string site = getStringFromBuff(pQst,&stop);
+    struct QUESTION *qst = (struct QUESTION *)&buff1[stop];
+    #ifdef DEBUG
+    cout << " Site: " << site;
+    cout << " QTYPE: " << hex << ntohs(qst->qtype);
+    cout << endl;
+    #endif
+
 }
 
 int main(int argc,char *argv[])

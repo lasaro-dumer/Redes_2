@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <iostream>
 
 #ifndef __USE_MISC
 #define __USE_MISC 1
@@ -29,6 +30,8 @@
 
 #include <netinet/ip_icmp.h> //header ICMP
 #include <netinet/tcp.h> //TCP header
+
+using namespace std;
 
 struct um_int {
     int primeiro;
@@ -55,6 +58,26 @@ int main(int argc,char *argv[])
     struct dois_int *dInt = (struct dois_int *)&buff[1];//sizeof(int));
     printf("dois_int->first:  %d\n",dInt->first );
     printf("dois_int->second: %d\n",dInt->second );
+    //unsigned char my_txt[] = { 0x52, 0x5f, 0x73, 0x68, 0x7e, 0x29, 0x33, 0x74, 0x74, 0x73, 0x72, 0x55 };
+    unsigned char my_txt[] = { 0x77, 0x77, 0x77, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x63, 0x6f, 0x6d };
+    unsigned int my_txt_len = 12;
+
+    //std::string my_std_string(reinterpret_cast<const char *>(my_txt), my_txt_len);
+    std::string my_std_string(&my_txt[3], &my_txt[3] + my_txt_len-3);
+    std::cout << "my_std_string: " << my_std_string << std::endl;
+    #ifdef CHAR1
+    int cc =2;
+    unsigned char charBuff[cc];
+    charBuff[0] = 'w';
+    charBuff[1] = 0x77;
+    for (int i = 0; i < cc; i++) {
+        cout << "charBuff["<<i<<"]:" << charBuff[i];
+        cout << " : " << (unsigned int)charBuff[i];
+        cout << " : " << hex << (unsigned int)charBuff[i] << std::endl;
+
+    }
+    #endif
+    #ifdef ARPDEBUG
     int i = 0;
     unsigned char buffArp[42];
     buffArp[i++]=0xff;
@@ -106,7 +129,7 @@ int main(int argc,char *argv[])
             printf("\n");
     }
     printf("\n");
-    
+
     printf("\t%u %u\n",buffArp[14],buffArp[15]);
     printf("\t%u %u\n",buffArp[16],buffArp[17]);
     printf("\t%u\n",buffArp[18]);
@@ -121,4 +144,5 @@ int main(int argc,char *argv[])
     printf("\t%u\n",arpPart->ar_hln);
     printf("\t%u\n",arpPart->ar_pln);
     printf("\t%u\n",ntohs(arpPart->ar_op));
+    #endif
 }
