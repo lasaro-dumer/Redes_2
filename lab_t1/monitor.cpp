@@ -43,6 +43,9 @@
 #include <netinet/udp.h> //UDP header
 
 #include "dnsh.h"
+#ifdef DNSSAMPLE
+#include "dnssample.h"
+#endif
 
 #define BUFFSIZE 1518
 #define TRUE 1
@@ -122,8 +125,9 @@ void doDNS(int pNet) {
     int pDNS = pNet+8;
     struct DNS_HEADER *dnsPart = (struct DNS_HEADER *)&buff1[pDNS];
     #ifdef DEBUG
-    printf("DNS ID: %04X QR: %d OP: %d AA: %d TC: %d RD: %d ",ntohs(dnsPart->id),dnsPart->qr,dnsPart->opcode,dnsPart->aa,dnsPart->tc,dnsPart->rd);
+    printf("DNS ID: %04X QR %d OP %d AA %d TC %d RD %d RC %d ",ntohs(dnsPart->id),dnsPart->qr,dnsPart->opcode,dnsPart->aa,dnsPart->tc,dnsPart->rd,dnsPart->rcode);
     printf("FLAGS: %02X%02X",buff1[pDNS+2],buff1[pDNS+3]);
+    printf(" QC %d AC %d",ntohs(dnsPart->q_count),ntohs(dnsPart->ans_count));
     #endif
     int pQst = pDNS+12;
     int stop = pQst;
@@ -193,7 +197,12 @@ int main(int argc,char *argv[])
     system("clear");
 	// recepcao de pacotes
 	while (1) {
-   		ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
+        #ifndef DNSSAMPLE
+        ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
+        #else
+        ssize_t pktSize = 121;
+        dnsResponseSample(&buff1[0]);
+        #endif
         //printf("Packet size: %lu\n", pktSize);
         cnt_TOTAL++;
         totalSize = totalSize + pktSize;
