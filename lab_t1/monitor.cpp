@@ -138,7 +138,13 @@ void doDNS(int pNet) {
     cout << " QTYPE: " << hex << ntohs(qst->qtype);
     cout << endl;
     #endif
-
+    int anw = stop+1;
+    string ansName = getStringFromBuff(anw,&stop);
+    #ifdef DEBUG
+    cout << " Answear: " << ansName;
+    //cout << " QTYPE: " << hex << ntohs(qst->qtype);
+    cout << endl;
+    #endif
 }
 
 int main(int argc,char *argv[])
@@ -190,6 +196,8 @@ int main(int argc,char *argv[])
     double cnt_DNS = 0;
     double cnt_HTTPS = 0;
     double cnt_SOCKS = 0;
+    double cnt_TCPDHCP = 0;
+    double cnt_UDPDHCP = 0;
     map<string, unsigned int> IPsMap;
     map<uint16_t, unsigned int> TCPports;
     map<uint16_t, unsigned int> UDPports;
@@ -303,6 +311,8 @@ int main(int argc,char *argv[])
                             cnt_HTTP++;
                         }else if(sTP == 443){
                             cnt_HTTPS++;
+                        }else if(sTP == 67 || sTP == 68){
+                            cnt_TCPDHCP++;
                         }else //if(sTP == 1080)
                         {
                             //cnt_SOCKS++;
@@ -319,6 +329,8 @@ int main(int argc,char *argv[])
                             cnt_HTTP++;
                         }else if(dTP == 443){
                             cnt_HTTPS++;
+                        }else if(dTP == 67 || dTP == 68){
+                            cnt_TCPDHCP++;
                         }else //if(dTP == 1080)
                         {
                             //cnt_SOCKS++;
@@ -344,7 +356,9 @@ int main(int argc,char *argv[])
                         if(sUDP == 53){
                             cnt_DNS++;
                             doDNS(p);
-                        }else{
+                        }else if(sUDP == 67 || sUDP == 68){
+                            cnt_UDPDHCP++;
+                        }else {
                             cnt_UDPotherPort++;
                         }
                         //*
@@ -357,7 +371,9 @@ int main(int argc,char *argv[])
                         if(dUDP == 53){
                             cnt_DNS++;
                             doDNS(p);
-                        }else{
+                        }else if(dUDP == 67 || dUDP == 68){
+                            cnt_UDPDHCP++;
+                        }else {
                             cnt_UDPotherPort++;
                         }
                         //*/
@@ -412,6 +428,7 @@ int main(int argc,char *argv[])
         printf("UDP   : %.f (%0.02f%%)\n",cnt_UDP,(cnt_UDP/cnt_TOTAL)*100 );
         if(cnt_UDP > 0){
             printf("\tDNS   : %.f (%0.02f%%)\n",cnt_DNS,(cnt_DNS/(cnt_UDP*2))*100 );
+            printf("\tDHCP  : %.f (%0.02f%%)\n",cnt_UDPDHCP,(cnt_UDPDHCP/(cnt_UDP*2))*100 );
             printf("\tOther : %.f (%0.02f%%)\n",cnt_UDPotherPort,(cnt_UDPotherPort/(cnt_UDP*2))*100 );
         }
         printf("TCP   : %.f (%0.02f%%)\n",cnt_TCP,(cnt_TCP/cnt_TOTAL)*100 );
@@ -420,6 +437,7 @@ int main(int argc,char *argv[])
             printf("\tHTTP       : %.f (%0.02f%%)\n",cnt_HTTP,(cnt_HTTP/(cnt_TCP*2))*100 );
             printf("\tHTTPS      : %.f (%0.02f%%)\n",cnt_HTTPS,(cnt_HTTPS/(cnt_TCP*2))*100 );
             //printf("\tSOCKS      : %.f (%0.02f%%)\n",cnt_SOCKS,(cnt_SOCKS/(cnt_TCP*2))*100 );
+            printf("\tDHCP       : %.f (%0.02f%%)\n",cnt_TCPDHCP,(cnt_TCPDHCP/(cnt_TCP*2))*100 );
             printf("\tOther      : %.f (%0.02f%%)\n",cnt_TCPotherPort,(cnt_TCPotherPort/(cnt_TCP*2))*100 );
         }
         printf("TOP 5 IPs\n");
