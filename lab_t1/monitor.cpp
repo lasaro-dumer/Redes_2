@@ -159,9 +159,6 @@ int main(int argc,char *argv[])
 
 	printf("interface: %s\n",interface);
 
-    /* Criacao do socket. Todos os pacotes devem ser construidos a partir do protocolo Ethernet. */
-    /* De um "man" para ver os parametros.*/
-    /* htons: converte um short (2-byte) integer para standard network byte order. */
     if((sockd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
         printf("Error creating socket.\n");
         if(errno==EPERM)
@@ -169,7 +166,6 @@ int main(int argc,char *argv[])
         exit(1);
     }
 
-	// O procedimento abaixo eh utilizado para "setar" a interface em modo promiscuo
 	strcpy(ifr.ifr_name, interface);
 	if(ioctl(sockd, SIOCGIFINDEX, &ifr) < 0)
 		printf("error in ioctl!");
@@ -203,7 +199,6 @@ int main(int argc,char *argv[])
     map<uint16_t, unsigned int> UDPports;
 
     system("clear");
-	// recepcao de pacotes
 	while (1) {
         #ifndef DNSSAMPLE
         ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
@@ -211,7 +206,6 @@ int main(int argc,char *argv[])
         ssize_t pktSize = 121;
         dnsResponseSample(&buff1[0]);
         #endif
-        //printf("Packet size: %lu\n", pktSize);
         cnt_TOTAL++;
         totalSize = totalSize + pktSize;
         if(minSize > pktSize)
@@ -238,65 +232,43 @@ int main(int argc,char *argv[])
         - Nível de Aplicação
             V Quantidade e porcentagem de pacotes HTTP      (TCP source port == 80)
             V Quantidade e porcentagem de pacotes DNS       (UDP source port == 53)
-            1/2 Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
+            V Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
                 V   HTTPS (TCP source port == 443)
-                ?   SOCKS (TCP source port == 1080)
-                ?   DHCP (port 67 and 68)
+                V   DHCP (port 67 and 68)
             - Lista com os 5 sites mais acessados
         */
-        /*
-        printf("Destination Address:   ");
-        printMac(etHdr->ether_dhost);
-        printf("\n");
-        printf("Source Address:        ");
-        printMac(etHdr->ether_shost);
-        printf("\n");
-        //*/
         switch (pktype) {
             case IPv4:
             {
                 //see /usr/include/netinet/ip.h
                 struct ip *ipPart = (struct ip *) &buff1[14];
-                /*
-                printf("  Ethernet type hex:%x dec:%d is an IP packet\n",ntohs(etHdr->ether_type),ntohs(etHdr->ether_type));
-                printf("  Source IP:      %s\n",inet_ntoa(ipPart->ip_src));
-                printf("  Destination IP: %s\n",inet_ntoa(ipPart->ip_dst));
-                //*/
                 string sIP = inet_ntoa(ipPart->ip_src);
                 if(IPsMap.find(sIP) == IPsMap.end())
                     IPsMap[sIP] = 1;
                 else
                     IPsMap[sIP] = IPsMap[sIP]+1;
-                //*
                 string dIP = inet_ntoa(ipPart->ip_dst);
                 if(IPsMap.find(dIP) == IPsMap.end())
                     IPsMap[dIP] = 1;
                 else
                     IPsMap[dIP] = IPsMap[dIP]+1;
-                //*/
                 int p = 14 + (ipPart->ip_hl*4);
                 switch (ipPart->ip_p) {
                     case 1:{
                         cnt_ICMP++;
-                        //printf("ICMP package\n");
-                        //printf("IHL %d Start %d ICMP:\n", ipPart->ip_hl,p);
                         struct icmphdr *icmpPart = (struct icmphdr *)&buff1[p];
                         if (icmpPart->type == ICMP_ECHO) {
                             cnt_ICMP_ECHO++;
-                            //printf("ICMP echo\n");
                         } else if (icmpPart->type == ICMP_ECHOREPLY) {
                             cnt_ICMP_REPLY++;
-                            //printf("ICMP echo reply\n");
                         } else{
                             //printf("Unknow ICMP: %d\n", icmpPart->type);
                         }
                         break;
                     }
                     case 6:{
-                        //printf("TCP package\n");
                         cnt_TCP++;
                         struct tcphdr *tcpPart = (struct tcphdr *)&buff1[p];
-                        //printf("TCP Source %d\t\tDestination %d\n",ntohs(tcpPart->th_sport),ntohs(tcpPart->th_dport));
                         if(tcpPart->syn == 1){
                             cnt_TCP_ConnUP++;
                         }
@@ -313,12 +285,10 @@ int main(int argc,char *argv[])
                             cnt_HTTPS++;
                         }else if(sTP == 67 || sTP == 68){
                             cnt_TCPDHCP++;
-                        }else //if(sTP == 1080)
+                        }else
                         {
-                            //cnt_SOCKS++;
                             cnt_TCPotherPort++;
                         }
-                        //*
                         uint16_t dTP = ntohs(tcpPart->th_dport);
                         if(TCPports.find(dTP) == TCPports.end())
                             TCPports[dTP] = 1;
@@ -331,21 +301,15 @@ int main(int argc,char *argv[])
                             cnt_HTTPS++;
                         }else if(dTP == 67 || dTP == 68){
                             cnt_TCPDHCP++;
-                        }else //if(dTP == 1080)
+                        }else
                         {
-                            //cnt_SOCKS++;
                             cnt_TCPotherPort++;
                         }
-                        //*/
                         break;
                     }
                     case 17:{
                         cnt_UDP++;
                         struct udphdr *udpPart = (struct udphdr *)&buff1[p];
-                        //printf("UDP package\n");
-                        #ifdef DEBUG
-                        //printf("UDP Source %d\t\tDestination %d\n",ntohs(udpPart->uh_sport),ntohs(udpPart->uh_dport));
-                        #endif
 
                         uint16_t sUDP = ntohs(udpPart->uh_sport);
                         if(UDPports.find(sUDP) == UDPports.end())
@@ -361,7 +325,6 @@ int main(int argc,char *argv[])
                         }else {
                             cnt_UDPotherPort++;
                         }
-                        //*
                         uint16_t dUDP = ntohs(udpPart->uh_dport);
                         if(UDPports.find(dUDP) == UDPports.end())
                             UDPports[dUDP] = 1;
@@ -376,7 +339,6 @@ int main(int argc,char *argv[])
                         }else {
                             cnt_UDPotherPort++;
                         }
-                        //*/
                         break;
                     }
                     default:
@@ -392,9 +354,7 @@ int main(int argc,char *argv[])
             case ARP:{
                 //printf("Ethernet type hex:%x dec:%d is an ARP packet\n",ntohs(etHdr->ether_type),ntohs(etHdr->ether_type));
                 cnt_ARP++;
-                //count request and reply...
                 struct arphdr *arpPart = (struct arphdr *) &buff1[14];
-                //printf("ARP code: %d\n", arpPart->ar_op);
                 if(ntohs(arpPart->ar_op) == ARPOP_REQUEST){
                     cnt_ARP_REQ++;
                 }else if(ntohs(arpPart->ar_op) == ARPOP_REPLY){
@@ -436,7 +396,6 @@ int main(int argc,char *argv[])
         if(cnt_TCP > 0){
             printf("\tHTTP       : %.f (%0.02f%%)\n",cnt_HTTP,(cnt_HTTP/(cnt_TCP*2))*100 );
             printf("\tHTTPS      : %.f (%0.02f%%)\n",cnt_HTTPS,(cnt_HTTPS/(cnt_TCP*2))*100 );
-            //printf("\tSOCKS      : %.f (%0.02f%%)\n",cnt_SOCKS,(cnt_SOCKS/(cnt_TCP*2))*100 );
             printf("\tDHCP       : %.f (%0.02f%%)\n",cnt_TCPDHCP,(cnt_TCPDHCP/(cnt_TCP*2))*100 );
             printf("\tOther      : %.f (%0.02f%%)\n",cnt_TCPotherPort,(cnt_TCPotherPort/(cnt_TCP*2))*100 );
         }
