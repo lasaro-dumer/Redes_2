@@ -139,6 +139,13 @@ int main(int argc,char *argv[])
                         uint16_t sUDP = ntohs(udpPart->uh_sport);
 						if(sUDP == 67 || sUDP == 68){
                             cnt_UDPDHCP++;
+                            //// magica
+                            struct DHCP *dhcpPart = (struct DHCP *)&buff1[XXXX];
+                            // verifica tipo
+                            // monta pacote de resposta
+                            //// Verifica o que foi requisitado
+                            //// monta resposta com ip x
+
                         }
                         uint16_t dUDP = ntohs(udpPart->uh_dport);
 
