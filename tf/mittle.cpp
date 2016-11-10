@@ -1,6 +1,7 @@
 /*-------------------------------------------------------------*/
 /* Exemplo Socket Raw - Captura pacotes recebidos na interface */
 /*-------------------------------------------------------------*/
+//http://www.tcpipguide.com/free/t_DHCPMessageFormat.htm
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -16,6 +17,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <outputinformarion.h>
 
 #ifndef __USE_MISC
 #define __USE_MISC 1
@@ -78,6 +80,33 @@ enum etherpack_type getPackageType(u_int16_t tp){
     }
 }
 
+
+void doDNS(int pNet) {
+    int pDNS = pNet+8;
+    struct DNS_HEADER *dnsPart = (struct DNS_HEADER *)&buff1[pDNS];
+    #ifdef DEBUG
+    printf("DNS ID: %04X QR %d OP %d AA %d TC %d RD %d RC %d ",ntohs(dnsPart->id),dnsPart->qr,dnsPart->opcode,dnsPart->aa,dnsPart->tc,dnsPart->rd,dnsPart->rcode);
+    printf("FLAGS: %02X%02X",buff1[pDNS+2],buff1[pDNS+3]);
+    printf(" QC %d AC %d",ntohs(dnsPart->q_count),ntohs(dnsPart->ans_count));
+    #endif
+    int pQst = pDNS+12;
+    int stop = pQst;
+    string site = getStringFromBuff(pQst,&stop);
+    struct QUESTION *qst = (struct QUESTION *)&buff1[stop];
+    #ifdef DEBUG
+    cout << " Site: " << site;
+    cout << " QTYPE: " << hex << ntohs(qst->qtype);
+    cout << endl;
+    #endif
+    int anw = stop+1;
+    string ansName = getStringFromBuff(anw,&stop);
+    #ifdef DEBUG
+    cout << " Answear: " << ansName;
+    //cout << " QTYPE: " << hex << ntohs(qst->qtype);
+    cout << endl;
+    #endif
+}
+
 int main(int argc,char *argv[])
 {
 	printf("argc: %d\n",argc);
@@ -96,6 +125,8 @@ int main(int argc,char *argv[])
             printf("Permition denied.\n");
         exit(1);
     }
+
+    queue<*output> outs;
 
 	strcpy(ifr.ifr_name, interface);
 	if(ioctl(sockd, SIOCGIFINDEX, &ifr) < 0)
@@ -118,6 +149,9 @@ int main(int argc,char *argv[])
             {
                 //see /usr/include/netinet/ip.h
                 struct ip *ipPart = (struct ip *) &buff1[14];
+                struct output *out;
+                
+               
                 int p = 14 + (ipPart->ip_hl*4);
                 switch (ipPart->ip_p) {
                     case 6:{
@@ -130,6 +164,22 @@ int main(int argc,char *argv[])
                         uint16_t dTP = ntohs(tcpPart->th_dport);
 						if(dTP == 67 || dTP == 68){
                             cnt_TCPDHCP++;
+                        }
+                        else if(dTP == 80){
+                            out->date = time(0);
+                            string sIP = inet_ntoa(ipPart->ip_src);
+                            string dIP = inet_ntoa(ipPart->ip_dst);
+                            out->hostip = sIP
+                            out->domainip = dIP
+                            if(IPsMap.find(sIP) == IPsMap.end())
+                                //calma não sei o que vai ser
+                            else
+                                
+                            if(IPsMap.find(dIP) == IPsMap.end())
+                                //calma não sei o que vai ser
+                            else
+                            IPsMap[dIP] = IPsMap[dIP]+1;
+                        outs.push(out);
                         }
                         break;
                     }
