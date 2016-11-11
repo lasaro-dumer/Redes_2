@@ -7,3 +7,6 @@
 #ifndef u_int32_t
 #define u_int32_t unsigned long
 #endif
+#ifndef u_char
+#define u_char unsigned char
+#endif

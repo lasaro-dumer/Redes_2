@@ -1,6 +1,3 @@
-/*-------------------------------------------------------------*/
-/* Exemplo Socket Raw - Captura pacotes recebidos na interface */
-/*-------------------------------------------------------------*/
 //http://www.tcpipguide.com/free/t_DHCPMessageFormat.htm
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,7 +14,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-#include <outputinformarion.h>
+#include <queue>
 
 #ifndef __USE_MISC
 #define __USE_MISC 1
@@ -42,6 +39,9 @@
 #include <netinet/ip_icmp.h> //header ICMP
 #include <netinet/tcp.h> //TCP header
 #include <netinet/udp.h> //UDP header
+
+#include "dhcp.hpp"
+#include "outputinformation.hpp"
 
 #define BUFFSIZE 1518
 #define TRUE 1
@@ -80,8 +80,27 @@ enum etherpack_type getPackageType(u_int16_t tp){
     }
 }
 
+string getStringFromBuff(int start,int* stop){
+    stringstream ss;
+    int next = start;
+    unsigned char cntC = buff1[next];
+    while (cntC > 0) {
+        next++;
+        for (int i = next; i < (next+cntC); i++) {
+            ss << buff1[i];
+        }
+        next = next+cntC;
+        cntC = buff1[next];
+        if(cntC>0)
+            ss << ".";
+    }
+    next++;
+    *stop = next;
+    return ss.str();
+}
 
 void doDNS(int pNet) {
+    /*
     int pDNS = pNet+8;
     struct DNS_HEADER *dnsPart = (struct DNS_HEADER *)&buff1[pDNS];
     #ifdef DEBUG
@@ -105,6 +124,7 @@ void doDNS(int pNet) {
     //cout << " QTYPE: " << hex << ntohs(qst->qtype);
     cout << endl;
     #endif
+    //*/
 }
 
 int main(int argc,char *argv[])
@@ -126,7 +146,7 @@ int main(int argc,char *argv[])
         exit(1);
     }
 
-    queue<*output> outs;
+    queue<output*> outs;
 
 	strcpy(ifr.ifr_name, interface);
 	if(ioctl(sockd, SIOCGIFINDEX, &ifr) < 0)
@@ -150,8 +170,8 @@ int main(int argc,char *argv[])
                 //see /usr/include/netinet/ip.h
                 struct ip *ipPart = (struct ip *) &buff1[14];
                 struct output *out;
-                
-               
+
+
                 int p = 14 + (ipPart->ip_hl*4);
                 switch (ipPart->ip_p) {
                     case 6:{
@@ -169,17 +189,23 @@ int main(int argc,char *argv[])
                             out->date = time(0);
                             string sIP = inet_ntoa(ipPart->ip_src);
                             string dIP = inet_ntoa(ipPart->ip_dst);
+                            /*
                             out->hostip = sIP
                             out->domainip = dIP
-                            if(IPsMap.find(sIP) == IPsMap.end())
+                            if(IPsMap.find(sIP) == IPsMap.end()){
                                 //calma não sei o que vai ser
-                            else
-                                
-                            if(IPsMap.find(dIP) == IPsMap.end())
+                            }
+                            else{
+
+                            }
+
+                            if(IPsMap.find(dIP) == IPsMap.end()){
                                 //calma não sei o que vai ser
+                            }
                             else
                             IPsMap[dIP] = IPsMap[dIP]+1;
-                        outs.push(out);
+                            */
+                            outs.push(out);
                         }
                         break;
                     }
@@ -190,7 +216,16 @@ int main(int argc,char *argv[])
 						if(sUDP == 67 || sUDP == 68){
                             cnt_UDPDHCP++;
                             //// magica
-                            struct DHCP *dhcpPart = (struct DHCP *)&buff1[XXXX];
+                            p = p + 8;// 8bytes
+                            printf("DCHP op b %d\n", buff1[p]);
+                            struct DHCP *dhcpPart = (struct DHCP *)&buff1[p];
+                            printf("DCHP op s %u\n", dhcpPart->op);
+                            int option = p + 318;//(sizeof(DHCP));
+                            //int option = p + (sizeof(DHCP));
+                            printf("dhcp size %lu p: %d option start %d\n", (sizeof(DHCP)), p, option);
+                            printf("OPT Type: %d\tLen: %d\n", buff1[option], buff1[option+1]);
+                            printf("OPT Type: %d\tLen: %d\n", ntohs(buff1[option]), ntohs(buff1[option+1]));
+                            printf("OPT Type: %d\tLen: %d\n", ntohl(buff1[option]), ntohl(buff1[option+1]));
                             // verifica tipo
                             // monta pacote de resposta
                             //// Verifica o que foi requisitado
