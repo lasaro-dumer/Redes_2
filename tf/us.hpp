@@ -10,3 +10,6 @@
 #ifndef u_char
 #define u_char unsigned char
 #endif
+#ifndef u_int8_t
+#define u_int8_t unsigned char
+#endif

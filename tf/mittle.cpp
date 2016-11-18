@@ -178,11 +178,11 @@ int main(int argc,char *argv[])
                         struct tcphdr *tcpPart = (struct tcphdr *)&buff1[p];
 
                         uint16_t sTP = ntohs(tcpPart->th_sport);
-						if(sTP == 67 || sTP == 68){
+			                  if(sTP == 67 || sTP == 68){
                             cnt_TCPDHCP++;
                         }
                         uint16_t dTP = ntohs(tcpPart->th_dport);
-						if(dTP == 67 || dTP == 68){
+		                    if(dTP == 67 || dTP == 68){
                             cnt_TCPDHCP++;
                         }
                         else if(dTP == 80){
@@ -218,14 +218,36 @@ int main(int argc,char *argv[])
                             //// magica
                             p = p + 8;// 8bytes
                             printf("DCHP op b %d\n", buff1[p]);
-                            struct DHCP *dhcpPart = (struct DHCP *)&buff1[p];
+                            struct dhcp_packet *dhcpPart = (struct dhcp_packet *)&buff1[p];
                             printf("DCHP op s %u\n", dhcpPart->op);
-                            int option = p + 318;//(sizeof(DHCP));
-                            //int option = p + (sizeof(DHCP));
-                            printf("dhcp size %lu p: %d option start %d\n", (sizeof(DHCP)), p, option);
-                            printf("OPT Type: %d\tLen: %d\n", buff1[option], buff1[option+1]);
-                            printf("OPT Type: %d\tLen: %d\n", ntohs(buff1[option]), ntohs(buff1[option+1]));
-                            printf("OPT Type: %d\tLen: %d\n", ntohl(buff1[option]), ntohl(buff1[option+1]));
+                            //discover e request => op = 1
+                            //offer e ack => op = 2
+                            //int option = p + 318;//(sizeof(DHCP));
+                            int option = p + (sizeof(dhcp_packet));
+                            // printf("dhcp size %lu p: %d option start %d\n", (sizeof(dhcp_packet)), p, option);
+                            // printf("OPT Type: %d\tLen: %d\n", buff1[option], buff1[option+1]);
+                            // printf("OPT Type: %d\tLen: %d\n", ntohs(buff1[option]), ntohs(buff1[option+1]));
+                            // printf("OPT Type: %d\tLen: %d\n", ntohl(buff1[option]), ntohl(buff1[option+1]));
+                            printf("DHCP_MAX_OPTION_LEN = %d\n", DHCP_MAX_OPTION_LEN);
+                            int i = 0;
+                            int opt = 1;
+                            // while(i <= DHCP_MAX_OPTION_LEN) {
+                              int type =     dhcpPart->options[i]   << 24;
+                              type = type & (dhcpPart->options[i+1] << 16);
+                              type = type & (dhcpPart->options[i+2] << 8);
+                              type = type & (dhcpPart->options[i+3]);
+                              i+=4;
+                              int length = dhcpPart->options[i] & dhcpPart->options[i+1] & dhcpPart->options[i+2] & dhcpPart->options[i+3];
+                              printf("option [%d]= %x ", opt, type);
+                              printf("%u ", dhcpPart->options[i]);
+                              printf("%u ", dhcpPart->options[i+1]);
+                              printf("%u ", dhcpPart->options[i+2]);
+                              printf("%u ", dhcpPart->options[i+3]);
+                              printf("%x\n", length);
+                              i+=(4*length);
+                              opt++;
+                            // }
+
                             // verifica tipo
                             // monta pacote de resposta
                             //// Verifica o que foi requisitado
