@@ -1,15 +1,16 @@
 #ifndef u_short
-#define u_short unsigned short
+typedef unsigned short u_short;
 #endif
 #ifndef u_int16_t
-#define u_int16_t unsigned int
+// #define u_int16_t unsigned int
+typedef unsigned short u_int16_t;
 #endif
 #ifndef u_int32_t
-#define u_int32_t unsigned long
+typedef unsigned int u_int32_t;
 #endif
 #ifndef u_char
-#define u_char unsigned char
+typedef unsigned char u_char;
 #endif
 #ifndef u_int8_t
-#define u_int8_t unsigned char
+typedef unsigned char u_int8_t;
 #endif

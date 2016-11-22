@@ -127,6 +127,14 @@ void doDNS(int pNet) {
     //*/
 }
 
+unsigned int get4Octet(unsigned char* chars,long i) {
+    unsigned int octets = chars[i]   << 24;
+    octets = octets & (chars[i+1] << 16);
+    octets = octets & (chars[i+2] << 8);
+    octets = octets & (chars[i+3]);
+    return octets;
+}
+
 int main(int argc,char *argv[])
 {
 	printf("argc: %d\n",argc);
@@ -159,6 +167,9 @@ int main(int argc,char *argv[])
     double cnt_UDPDHCP = 0;
 
     system("clear");
+    printf("sizeof(char)            %u\n",sizeof(char));
+    printf("sizeof(signed char)     %u\n",sizeof(signed char));
+    printf("sizeof(unsigned char)   %u\n",sizeof(unsigned char));
 	while (1) {
         ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
 
@@ -217,36 +228,42 @@ int main(int argc,char *argv[])
                             cnt_UDPDHCP++;
                             //// magica
                             p = p + 8;// 8bytes
+                            printf("p=%d\n", p);
                             printf("DCHP op b %d\n", buff1[p]);
                             struct dhcp_packet *dhcpPart = (struct dhcp_packet *)&buff1[p];
                             printf("DCHP op s %u\n", dhcpPart->op);
                             //discover e request => op = 1
                             //offer e ack => op = 2
                             //int option = p + 318;//(sizeof(DHCP));
-                            int option = p + (sizeof(dhcp_packet));
+                            // int option = p + (sizeof(dhcp_packet));
                             // printf("dhcp size %lu p: %d option start %d\n", (sizeof(dhcp_packet)), p, option);
                             // printf("OPT Type: %d\tLen: %d\n", buff1[option], buff1[option+1]);
                             // printf("OPT Type: %d\tLen: %d\n", ntohs(buff1[option]), ntohs(buff1[option+1]));
                             // printf("OPT Type: %d\tLen: %d\n", ntohl(buff1[option]), ntohl(buff1[option+1]));
-                            printf("DHCP_MAX_OPTION_LEN = %d\n", DHCP_MAX_OPTION_LEN);
                             int i = 0;
-                            int opt = 1;
-                            // while(i <= DHCP_MAX_OPTION_LEN) {
-                              int type =     dhcpPart->options[i]   << 24;
-                              type = type & (dhcpPart->options[i+1] << 16);
-                              type = type & (dhcpPart->options[i+2] << 8);
-                              type = type & (dhcpPart->options[i+3]);
-                              i+=4;
-                              int length = dhcpPart->options[i] & dhcpPart->options[i+1] & dhcpPart->options[i+2] & dhcpPart->options[i+3];
-                              printf("option [%d]= %x ", opt, type);
-                              printf("%u ", dhcpPart->options[i]);
-                              printf("%u ", dhcpPart->options[i+1]);
-                              printf("%u ", dhcpPart->options[i+2]);
-                              printf("%u ", dhcpPart->options[i+3]);
-                              printf("%x\n", length);
-                              i+=(4*length);
-                              opt++;
+
+                            // printf("DCHP file ");
+                            // for (size_t i = 0; i < DHCP_FILE_LEN; i++) {
+                            //     printf("%u", dhcpPart->file[i]);
                             // }
+                            // printf("\n");
+                            // printf("DHCP_MAX_OPTION_LEN = %d\n", DHCP_MAX_OPTION_LEN);
+                            // for (i = 0; i < DHCP_MAX_OPTION_LEN; i++) {
+                            //     // unsigned int octets = get4Octet(dhcpPart->options,i);
+                            //     // printf("[%d] %x\n",i,octets );
+                            //     printf("[%d] %u\n",i, dhcpPart->options[i] );
+                            // }
+                            int opt = 4;
+                            if(dhcpPart->options[4]==53){
+                                printf("option 53\n");
+                            }
+                            while(opt <= DHCP_MAX_OPTION_LEN) {
+                                unsigned char type = dhcpPart->options[opt];
+                                unsigned char length = dhcpPart->options[opt+1];
+                                if(type!=0)
+                                    printf("option %d length %d\n",type,length );
+                                opt+=length;
+                            }
 
                             // verifica tipo
                             // monta pacote de resposta
