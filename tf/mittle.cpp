@@ -43,6 +43,9 @@
 #include "dhcp.hpp"
 #include "outputinformation.hpp"
 #include "samples/discover.hpp"
+#include "samples/request.hpp"
+#include "samples/offer.hpp"
+#include "samples/ack.hpp"
 
 #define BUFFSIZE 1518
 #define TRUE 1
@@ -169,14 +172,22 @@ int main(int argc,char *argv[])
 
     system("clear");
     #ifdef DEBUGP
-    int maxPkt = 1;
+    int maxPkt = 4;
     int c = 0;
     unsigned char* pkts[maxPkt];
+    unsigned long pktsSize[maxPkt];
     pkts[0] = buffDiscover;
+    pkts[1] = buffOffer;
+    pkts[2] = buffResquest;
+    pkts[3] = buffAck;
+    pktsSize[0] = sizeof(buffDiscover);
+    pktsSize[1] = sizeof(buffOffer);
+    pktsSize[2] = sizeof(buffResquest);
+    pktsSize[3] = sizeof(buffAck);
     while (c<maxPkt) {
-        ssize_t pktSize = sizeof(buffDiscover);//sizeof(pkts[c]);
+        ssize_t pktSize = pktsSize[c];
         // buff1 = pkts[c];
-        printf("sizeof %d=%lu (%lu)\n", c, pktSize, sizeof(buffDiscover));
+        printf("sizeof %d=%lu\n", c, pktSize);
         memcpy(buff1, pkts[c], pktSize);
         printf("copied \n");
         // for (int o = 0; o < pktSize; o++) {
@@ -248,31 +259,46 @@ int main(int argc,char *argv[])
                             while(opt <= DHCP_MAX_OPTION_LEN) {
                                 unsigned char optype = dhcpPart->options[opt++];
                                 unsigned char length = dhcpPart->options[opt++];
-                                if(optype==53){//remove this and add more cases in 'switch(optype)'
+                                if(optype > 0 && optype < 255){//add more cases in 'switch(optype)' if needed
                                     printf("opt %d len %d ",optype,length );
                                     switch (optype) {
-                                        case DHO_DHCP_MESSAGE_TYPE:
+                                        case DHO_DHCP_MESSAGE_TYPE:{
                                             unsigned char dhcpType = dhcpPart->options[opt];
                                             printf(" dhcpType ");
                                             switch (dhcpType) {//I think this cases maybe enough
                                                 case DHCPDISCOVER:
-                                                    printf("DHCPDISCOVER");
+                                                    printf("DHCPDISCOVER ");
                                                     break;
                                                 case DHCPOFFER:
-                                                    printf("DHCPOFFER");
+                                                    printf("DHCPOFFER ");
                                                     break;
                                                 case DHCPREQUEST:
-                                                    printf("DHCPREQUEST");
+                                                    printf("DHCPREQUEST ");
                                                     break;
                                                 case DHCPACK:
-                                                    printf("DHCPACK");
+                                                    printf("DHCPACK ");
                                                     break;
                                             }
+                                            opt+=length;
+                                            break;
+                                        }
+                                        case DHO_HOST_NAME:{
+                                            stringstream ss;
+                                            for (int n = 0; n < length; n++) {
+                                                ss << dhcpPart->options[opt++];
+                                            }
+                                            string hostName = ss.str();
+                                            printf("host name %s", hostName.c_str());
+                                            break;
+                                        }
+                                        default:
+                                            opt+=length;
                                             break;
                                     }
                                     printf("\n");
+                                }else{
+                                    opt+=length;
                                 }
-                                opt+=length;
                             }
 
                             // verifica tipo
