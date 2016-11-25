@@ -1,0 +1,58 @@
+//SETTING UP DHCP
+
+dhcph->op = BOOTREPLY;
+dhcph->htype = HTYPE_ETHER;
+dhcph->hlen = 6;
+dhcph->hops = 0;
+dhcph->xid = // PEGAR DO CLIENT
+dhcph->secs = 0;
+dhcph->flags = 0;
+dhcph->ciaddr = ; // OFFER = 0 / ACK = ciaddr from REQUEST or 0
+dhcph->yiaddr = ; // IP OFERECIDO
+dhcph->siaddr = ; // NOSSO IP
+dhcph->giaddr = 0;
+dhcph->chaddr = ; // MAC DO CLIENTE
+dhcph->sname = 0;
+dhcph->file = 0;
+dhcph->options[0-3] = DHCP_OPTIONS_COOKIE;
+
+//CAMPOS PARA OFFER
+dhcph->options[4-6] = ; //0x35, 0x01, 0x02
+
+//CAMPOS PARA ACK
+dhcph->options[4-6] = ; //0x35, 0x01, 0x05
+
+dhcph->options[7-12] = ; //0x36, 0x04, NOSSO IP
+dhcph->options[13-18] = ; //0x33, 0x04, TEMPO
+dhcph->options[19-24] = ; //0x01, 0x04, MASK
+dhcph->options[25-30] = ; //0x1c, 0x04, BROADCAST ADDRESS
+dhcph->options[31-36] = ; //0x02, 0x04, ff, ff, d5, d0
+dhcph->options[37-42] = ; //0x03, 0x04, NOSSO IP
+dhcph->options[43-48] = ; //0x06, 0x04, NOSSO DNS
+dhcph->options[49-54] = ; //0x2a, 0x04, NOSSO NTP
+dhcph->options[55] = ; //0xff
+
+//SETTING UP UDP
+
+udph->source = 67;
+udph->dest = 68;
+udph->len = sizeof (struct dhcp_packet);
+udph->check ; //O MALDITO
+
+//SETTING UP IP
+
+iph->version = 4;
+iph->ihl = 20;
+iph->tos = // TOS = 0x00 para offer e ack, 0x10 para request e discover;
+iph->tot_len = sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dhcp_packet);
+
+
+iph->id = htonl (#####); //Ids diferentes para offer e ack
+iph->frag_off = 0;
+iph->ttl = 255;
+iph->protocol = 17; //UDP
+iph->check = 0;      //Set to 0 before calculating checksum
+iph->saddr = inet_addr ( source_ip );    //Spoof the source ip address
+iph->daddr = sin.sin_addr.s_addr;
+
+iph->check = csum ((unsigned short *) datagram, iph->tot_len);
