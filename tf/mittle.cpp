@@ -63,6 +63,12 @@ int sockd;
 int on;
 struct ifreq ifr;
 
+struct if_info {
+    struct sockaddr_in ip;
+    struct sockaddr_in mask;
+    struct sockaddr_in broadcast;
+};
+
 enum etherpack_type{ IPv4=1, ARP=2, REVARP=3, IPv6=4 };
 /* about bytes conversion see: http://beej.us/guide/bgnet/output/html/multipage/htonsman.html
 htons() Host TO network Short
@@ -135,36 +141,72 @@ void doDNS(int pNet) {
 void ridepack(iphdr *iph, udphdr *udph, dhcp_packet *dhcph, unsigned char *data){
 
 }
-void sendDhcpOffer(u_int32_t transId) {
-    char datagram[4096];
-        //zero out the packet buffer
-    memset (datagram, 0, 4096);
 
+in_addr reservedIP(string name){
+
+}
+
+int dhcpAddOption(unsigned char ** optPointer, int start, char optType, int length, unsigned char* value){
+    int nextOpt = start;
+    unsigned char * optionArray = *(optPointer);
+    optionArray[nextOpt++] = optType;
+    optionArray[nextOpt++] = length;
+    for (int o = 0; o < length; o++) {
+        optionArray[nextOpt++] = value[o];
+    }
+    return nextOpt;
+}
+
+void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u_int32_t transId) {
+    char datagram[4096];
+    printf("setting datagram\n");
+    //zero out the packet buffer
+    memset (datagram, 0, 4096);
+    printf("datagram setted\n");
+    printf("setting structs\n");
     //IP header
     struct iphdr *iph = (struct iphdr *) datagram;
     //UDP header
     struct udphdr *udpPart = (struct udphdr *)(datagram + sizeof (struct ip));
     struct dhcp_packet *dhcph = (struct dhcp_packet *)(datagram + sizeof(struct iphdr) + sizeof(struct udphdr));
+    printf("structs setted\n");
 
-
-    // dhcph->op = BOOTREPLY;
-    // dhcph->htype = HTYPE_ETHER;
-    // dhcph->hlen = 6;
-    // dhcph->hops = 0;
-    // dhcph->xid = transId;// PEGAR DO CLIENT
-    // dhcph->secs = 0;
-    // dhcph->flags = 0;
+    dhcph->op = BOOTREPLY;
+    dhcph->htype = HTYPE_ETHER;
+    dhcph->hlen = 6;
+    dhcph->hops = 0;
+    dhcph->xid = transId;// PEGAR DO CLIENT
+    dhcph->secs = 0;
+    dhcph->flags = 0;
     // dhcph->ciaddr = (struct in_addr)0; // OFFER = 0 / ACK = ciaddr from REQUEST or 0
-    // dhcph->yiaddr = ; // IP OFERECIDO
-    // dhcph->siaddr = ; // NOSSO IP
+    dhcph->yiaddr = reservedIP(clientName); // IP OFERECIDO
+    dhcph->siaddr = ifInfo.ip.sin_addr; // NOSSO IP
     // dhcph->giaddr = 0;
-    // dhcph->chaddr = ; // MAC DO CLIENTE
+    for (int c = 0; c < 16; c++) {
+        dhcph->chaddr[c] = clientMac[c]; // MAC DO CLIENTE
+    }
     // dhcph->sname = 0;
     // dhcph->file = 0;
+    printf("setting options\n");
+    int nextOpt = 0;
+    int optLenght = 4;
+    dhcph->options[0] = 0x63;
+    dhcph->options[1] = 0x82;
+    dhcph->options[2] = 0x53;
+    dhcph->options[3] = 0x63;
+    printf("magic cookie setted\n");
     // dhcph->options[0-3] = DHCP_OPTIONS_COOKIE;
     // //CAMPOS PARA OFFER
     // dhcph->options[4-6] = ; //0x35, 0x01, 0x02
-    //
+    unsigned char *value = (unsigned char *)malloc(2);
+    printf("created value, setting it\n");
+    value[0] = DHCPOFFER;
+    value[1] = DHCPACK;
+    printf("value %x %x\n", value[0], value[1]);
+    nextOpt = dhcpAddOption((dhcph->options),nextOpt,DHO_DHCP_MESSAGE_TYPE,1,value);
+    // dhcph->options[4] = 0x35;
+    // dhcph->options[5] = 0x01;
+    // dhcph->options[6] = 0x02;
     // dhcph->options[7-12] = ; //0x36, 0x04, NOSSO IP
     // dhcph->options[13-18] = ; //0x33, 0x04, TEMPO
     // dhcph->options[19-24] = ; //0x01, 0x04, MASK
@@ -174,7 +216,58 @@ void sendDhcpOffer(u_int32_t transId) {
     // dhcph->options[43-48] = ; //0x06, 0x04, NOSSO DNS
     // dhcph->options[49-54] = ; //0x2a, 0x04, NOSSO NTP
     // dhcph->options[55] = ; //0xff
-    //
+    int opt=4;
+    while(opt <= DHCP_MAX_OPTION_LEN) {
+        unsigned char optype = dhcph->options[opt++];
+        unsigned char length = dhcph->options[opt++];
+        if(optype > 0 && optype < 255){//add more cases in 'switch(optype)' if needed
+            printf("[%d]opt %d len %d ",opt,optype,length );
+            switch (optype) {
+                case DHO_DHCP_MESSAGE_TYPE:{
+                    unsigned char dhcpType = dhcph->options[opt];
+                    printf(" dhcpType ");
+                    switch (dhcpType) {//I think this cases maybe enough
+                        case DHCPDISCOVER:
+                            printf("DHCPDISCOVER ");
+                            break;
+                        case DHCPOFFER:
+                            //Montar o pacote
+                            printf("DHCPOFFER ");
+                            // ridepack();
+                            // sendpack();
+                            struct dhcp_packet *dhcpresponse;
+                            break;
+                        case DHCPREQUEST:
+                            printf("DHCPREQUEST ");
+                            break;
+                        case DHCPACK:
+                            //Montar o Pacote
+                            printf("DHCPACK ");
+                            // ridepack();
+                            // sendpack();
+                            break;
+                    }
+                    opt+=length;
+                    break;
+                }
+                case DHO_HOST_NAME:{
+                    stringstream ss;
+                    for (int n = 0; n < length; n++) {
+                        ss << dhcph->options[opt++];
+                    }
+                    string hostName = ss.str();
+                    printf("host name %s", hostName.c_str());
+                    break;
+                }
+                default:
+                    opt+=length;
+                    break;
+            }
+            printf("\n");
+        }else{
+            opt+=length;
+        }
+    }
     // //SETTING UP UDP
     //
     // udph->source = 67;
@@ -247,6 +340,17 @@ int main(int argc,char *argv[])
     double cnt_UDPDHCP = 0;
 
     system("clear");
+    struct if_info srvInterface;
+    ioctl(sockd, SIOCGIFADDR, &ifr);
+    srvInterface.ip = *((struct sockaddr_in *)&ifr.ifr_addr);
+    ioctl(sockd, SIOCGIFBRDADDR, &ifr);
+    srvInterface.broadcast = *((struct sockaddr_in *)&ifr.ifr_broadaddr);
+    ioctl(sockd, SIOCGIFNETMASK, &ifr);
+    srvInterface.mask = *((struct sockaddr_in *)&ifr.ifr_netmask);
+    printf("Out IP       : %s\n", inet_ntoa(srvInterface.ip.sin_addr));
+    printf("Out Broadcast: %s\n", inet_ntoa(srvInterface.broadcast.sin_addr));
+    printf("Out MASK     : %s\n", inet_ntoa(srvInterface.mask.sin_addr));
+    sendDhcpOffer(srvInterface,"xps","AC:72:89:0A:0B:81", 1);
     #ifdef DEBUGP
     int maxPkt = 4;
     int c = 0;
