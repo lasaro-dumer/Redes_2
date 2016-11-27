@@ -57,7 +57,7 @@
 using namespace std;
 
 unsigned char buff1[BUFFSIZE]; // buffer de recepcao
-unsigned char datagram[BUFFSIZE]
+// unsigned char datagram[BUFFSIZE];
 
 int sockd;
 int on;
@@ -132,21 +132,80 @@ void doDNS(int pNet) {
     //*/
 }
 
-unsigned int get4Octet(unsigned char* chars,long i) {
-    unsigned int octets = chars[i]   << 24;
-    octets = octets & (chars[i+1] << 16);
-    octets = octets & (chars[i+2] << 8);
-    octets = octets & (chars[i+3]);
-    return octets;
-}
-
-void ridepack(ip *iph,udphdr *udph,dhcp_packet *dhcph, *datagram){
+void ridepack(iphdr *iph, udphdr *udph, dhcp_packet *dhcph, unsigned char *data){
 
 }
+void sendDhcpOffer(u_int32_t transId) {
+    char datagram[4096];
+        //zero out the packet buffer
+    memset (datagram, 0, 4096);
 
-void sendpack(){
+    //IP header
+    struct iphdr *iph = (struct iphdr *) datagram;
+    //UDP header
+    struct udphdr *udpPart = (struct udphdr *)(datagram + sizeof (struct ip));
+    struct dhcp_packet *dhcph = (struct dhcp_packet *)(datagram + sizeof(struct iphdr) + sizeof(struct udphdr));
+
+
+    // dhcph->op = BOOTREPLY;
+    // dhcph->htype = HTYPE_ETHER;
+    // dhcph->hlen = 6;
+    // dhcph->hops = 0;
+    // dhcph->xid = transId;// PEGAR DO CLIENT
+    // dhcph->secs = 0;
+    // dhcph->flags = 0;
+    // dhcph->ciaddr = (struct in_addr)0; // OFFER = 0 / ACK = ciaddr from REQUEST or 0
+    // dhcph->yiaddr = ; // IP OFERECIDO
+    // dhcph->siaddr = ; // NOSSO IP
+    // dhcph->giaddr = 0;
+    // dhcph->chaddr = ; // MAC DO CLIENTE
+    // dhcph->sname = 0;
+    // dhcph->file = 0;
+    // dhcph->options[0-3] = DHCP_OPTIONS_COOKIE;
+    // //CAMPOS PARA OFFER
+    // dhcph->options[4-6] = ; //0x35, 0x01, 0x02
+    //
+    // dhcph->options[7-12] = ; //0x36, 0x04, NOSSO IP
+    // dhcph->options[13-18] = ; //0x33, 0x04, TEMPO
+    // dhcph->options[19-24] = ; //0x01, 0x04, MASK
+    // dhcph->options[25-30] = ; //0x1c, 0x04, BROADCAST ADDRESS
+    // dhcph->options[31-36] = ; //0x02, 0x04, ff, ff, d5, d0
+    // dhcph->options[37-42] = ; //0x03, 0x04, NOSSO IP
+    // dhcph->options[43-48] = ; //0x06, 0x04, NOSSO DNS
+    // dhcph->options[49-54] = ; //0x2a, 0x04, NOSSO NTP
+    // dhcph->options[55] = ; //0xff
+    //
+    // //SETTING UP UDP
+    //
+    // udph->source = 67;
+    // udph->dest = 68;
+    // udph->len = sizeof (struct dhcp_packet);
+    // udph->check ; //O MALDITO
+    //
+    // //SETTING UP IP
+    //
+    // iph->version = 4;
+    // iph->ihl = 20;
+    // iph->tos = // TOS = 0x00 para offer e ack, 0x10 para request e discover;
+    // iph->tot_len = sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dhcp_packet);
+    //
+    // iph->id = htonl (#####); //Ids diferentes para offer e ack
+    // iph->frag_off = 0;
+    // iph->ttl = 255;
+    // iph->protocol = 17; //UDP
+    // iph->check = 0;      //Set to 0 before calculating checksum
+    // iph->saddr = inet_addr ( source_ip );    //Spoof the source ip address
+    // iph->daddr = sin.sin_addr.s_addr;
+    //
+    // iph->check = csum ((unsigned short *) datagram, iph->tot_len);
+
+}
+
+
+
+void sendpack(int s, struct sockaddr_in sAddrIn, iphdr *iph, unsigned char *packet){
     //Send the packet
-    if (sendto (s, datagram, iph->tot_len ,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0){
+    if (sendto (s, packet, iph->tot_len ,  0, (struct sockaddr *) &sAddrIn, sizeof (sAddrIn)) < 0){
         perror("sendto failed");
     }
     //Data send successfully
@@ -289,8 +348,8 @@ int main(int argc,char *argv[])
                                                 case DHCPOFFER:
                                                     //Montar o pacote
                                                     printf("DHCPOFFER ");
-                                                    ridepack();
-                                                    sendpack();
+                                                    // ridepack();
+                                                    // sendpack();
                                                     struct dhcp_packet *dhcpresponse;
                                                     break;
                                                 case DHCPREQUEST:
@@ -299,8 +358,8 @@ int main(int argc,char *argv[])
                                                 case DHCPACK:
                                                     //Montar o Pacote
                                                     printf("DHCPACK ");
-                                                    ridepack();
-                                                    sendpack();
+                                                    // ridepack();
+                                                    // sendpack();
                                                     break;
                                             }
                                             opt+=length;
