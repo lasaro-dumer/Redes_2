@@ -138,17 +138,13 @@ void doDNS(int pNet) {
     //*/
 }
 
-void ridepack(iphdr *iph, udphdr *udph, dhcp_packet *dhcph, unsigned char *data){
-
-}
-
 in_addr reservedIP(string name){
 
 }
 
-int dhcpAddOption(unsigned char ** optPointer, int start, char optType, int length, unsigned char* value){
+int dhcpAddOption(unsigned char * optPointer, int start, char optType, int length, unsigned char* value){
     int nextOpt = start;
-    unsigned char * optionArray = *(optPointer);
+    unsigned char * optionArray = (optPointer);
     optionArray[nextOpt++] = optType;
     optionArray[nextOpt++] = length;
     for (int o = 0; o < length; o++) {
@@ -202,8 +198,10 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     printf("created value, setting it\n");
     value[0] = DHCPOFFER;
     value[1] = DHCPACK;
-    printf("value %x %x\n", value[0], value[1]);
-    nextOpt = dhcpAddOption((dhcph->options),nextOpt,DHO_DHCP_MESSAGE_TYPE,1,value);
+    nextOpt+=optLenght;
+    printf("value %x %x %d\n", value[0], value[1], nextOpt);
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DHCP_MESSAGE_TYPE,1,value);
+    printf(" %d\n", nextOpt);
     // dhcph->options[4] = 0x35;
     // dhcph->options[5] = 0x01;
     // dhcph->options[6] = 0x02;
