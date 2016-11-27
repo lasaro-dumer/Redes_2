@@ -57,6 +57,7 @@
 using namespace std;
 
 unsigned char buff1[BUFFSIZE]; // buffer de recepcao
+unsigned char datagram[BUFFSIZE]
 
 int sockd;
 int on;
@@ -137,6 +138,22 @@ unsigned int get4Octet(unsigned char* chars,long i) {
     octets = octets & (chars[i+2] << 8);
     octets = octets & (chars[i+3]);
     return octets;
+}
+
+void ridepack(ip *iph,udphdr *udph,dhcp_packet *dhcph, *datagram){
+
+}
+
+void sendpack(){
+    //Send the packet
+    if (sendto (s, datagram, iph->tot_len ,  0, (struct sockaddr *) &sin, sizeof (sin)) < 0){
+        perror("sendto failed");
+    }
+    //Data send successfully
+    else
+    {
+        printf ("Packet Send. Length : %d \n" , iph->tot_len);
+    }
 }
 
 int main(int argc,char *argv[])
@@ -270,13 +287,20 @@ int main(int argc,char *argv[])
                                                     printf("DHCPDISCOVER ");
                                                     break;
                                                 case DHCPOFFER:
+                                                    //Montar o pacote
                                                     printf("DHCPOFFER ");
+                                                    ridepack();
+                                                    sendpack();
+                                                    struct dhcp_packet *dhcpresponse;
                                                     break;
                                                 case DHCPREQUEST:
                                                     printf("DHCPREQUEST ");
                                                     break;
                                                 case DHCPACK:
+                                                    //Montar o Pacote
                                                     printf("DHCPACK ");
+                                                    ridepack();
+                                                    sendpack();
                                                     break;
                                             }
                                             opt+=length;
