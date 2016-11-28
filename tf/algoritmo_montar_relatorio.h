@@ -22,19 +22,145 @@ string captureHost(char *sourceHost, char *sourceIP, char *httpPck)
 	ss << buffer << " - ";
 	ss << sourceIP << "(" << sourceHost << ") - <a href=\"";
 
-	char * lex = strtok(httpPck, " \n\r");
-	int length = strlen(lex);
+	int length = strlen(httpPck);
+	char state = 'c';
 
 	for(int i = 0; i < length; i++)
 	{
-		if(lex[i]=='G' && lex[i+1]=='E'&&lex[i+2]=='T')
+		switch(state)
 		{
-			temp2 << lex[i+1];
+			case 'c':
+			{
+				if(httpPck[i]=='G')
+				{
+					state = 'G';
+				}
+				if(httpPck[i]=='H')
+				{
+					state = 'H';
+				}
+				break;
+			}
+			case 'G':
+			{
+				if(httpPck[i]=='E')
+				{
+					state = 'E';
+				}
+				else
+				{
+					state = 'c';
+				}
+				break;
+			}
+			case 'E':
+			{
+				if(httpPck[i]=='T')
+				{
+					state = 'T';
+				}
+				else
+				{
+					state = 'c';
+				}
+			}
+			case 'T':
+			{
+				if(httpPck[i]==' ')
+				{
+					state = 'a';
+				}
+				else
+				{
+					state = 'c';
+				}
+				break;
+			}
+			case 'H':
+			{
+				if(httpPck[i]=='o')
+				{
+					state = 'o';
+				}
+				else
+				{
+					state = 'c';
+				}
+				break;
+			}
+			case 'o':
+			{
+				if(httpPck[i]=='s')
+				{
+					state = 's';
+				}
+				else
+				{
+					state = 'c';
+				}
+				break;
+			}
+			case 's':
+			{
+				if(httpPck[i]=='t')
+				{
+					state = 't';
+				}
+				else
+				{
+					state = 'c';
+				}
+				break;
+			}
+			case 't':
+			{
+				if(httpPck[i]==':')
+				{
+					state = ':';
+				}
+				else
+				{
+					state = 'c';
+				}
+				break;
+			}
+			case ':':
+			{
+				if(httpPck[i]==' ')
+				{
+					state = 'b';
+				}
+				else
+				{
+					state = 'c';
+				}
+				break;
+			}
+			case 'a':
+			{
+				if(httpPck[i]==' ' || httpPck[i]=='\n' || httpPck[i]=='\r')
+				{
+					state = 'c';
+				}
+				else
+				{
+					temp2 << httpPck[i];
+				}
+				break;
+			}
+			case 'b':
+			{
+				if(httpPck[i]==' ' || httpPck[i]=='\n' || httpPck[i]=='\r')
+				{
+					state = 'c';
+				}
+				else
+				{
+					temp1 << httpPck[i];
+				}
+				break;
+			}
 		}
-		// if(lex[i]=="Host:")
-		// {
-		// 	temp1 << lex[i+1];
-		// }
 	}
 
 	ss << temp1 << temp2 << "\">";
