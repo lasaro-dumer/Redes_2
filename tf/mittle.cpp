@@ -39,6 +39,7 @@
 #include <netinet/ip_icmp.h> //header ICMP
 #include <netinet/tcp.h> //TCP header
 #include <netinet/udp.h> //UDP header
+#include <map>
 
 #include "dhcp.hpp"
 #include "outputinformation.hpp"
@@ -62,6 +63,9 @@ unsigned char buff1[BUFFSIZE]; // buffer de recepcao
 int sockd;
 int on;
 struct ifreq ifr;
+
+std::map<string ,u_int32_t> iplist;
+u_int32_t lastIpAdded;
 
 struct if_info {
     struct sockaddr_in ip;
@@ -138,10 +142,15 @@ void doDNS(int pNet) {
     //*/
 }
 
-in_addr reservedIP(string name){
-
+in_addr reservedIP(string name,struct if_info ifInfo){
+    u_int32_t oldIP = ifInfo.ip.sin_addr.s_addr
+    u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24
+    u_int32_t tempIP = oldIP ^ 0xFF
+    u_int32_t newIp = tempIP & tip
+    iplist.insert(name,newIp);
+    u_int32_t lastIpAdded =  newIP
+    return newIp
 }
-
 int dhcpAddOption(unsigned char * optPointer, int start, char optType, int length, unsigned char* value){
     int nextOpt = start;
     unsigned char * optionArray = (optPointer);
