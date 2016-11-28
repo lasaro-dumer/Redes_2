@@ -65,8 +65,8 @@ int sockd;
 int on;
 struct ifreq ifr;
 
-std::map<string ,u_int32_t> iplist;
-u_int32_t lastIpAdded;
+map<string ,unsigned int> iplist;
+unsigned int lastIpAdded;
 
 struct if_info {
     struct sockaddr_in ip;
@@ -144,14 +144,19 @@ void doDNS(int pNet) {
 }
 
 in_addr reservedIP(string name,struct if_info ifInfo){
-    u_int32_t oldIP = ifInfo.ip.sin_addr.s_addr
-    u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24
-    u_int32_t tempIP = oldIP ^ 0xFF
-    u_int32_t newIp = tempIP & tip
-    iplist.insert(name,newIp);
-    u_int32_t lastIpAdded =  newIP
-    return newIp
+    if ( iplist.find(name) == iplist.end() ) {
+        u_int32_t oldIP = ifInfo.ip.sin_addr.s_addr;
+        u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
+        u_int32_t tempIP = oldIP ^ 0xFF;
+        u_int32_t newIp = tempIP & tip;
+        iplist[name] = newIp;
+        lastIpAdded = newIP;
+        return newIp;
+    } else {
+        return iplist[name].second;
+    }
 }
+
 int dhcpAddOption(unsigned char * optPointer, int start, char optType, int length, unsigned char* value){
     int nextOpt = start;
     unsigned char * optionArray = (optPointer);
@@ -185,7 +190,7 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     dhcph->secs = 0;
     dhcph->flags = 0;
     // dhcph->ciaddr = (struct in_addr)0; // OFFER = 0 / ACK = ciaddr from REQUEST or 0
-    dhcph->yiaddr = reservedIP(clientName); // IP OFERECIDO
+    dhcph->yiaddr = reservedIP(clientName, ifInfo); // IP OFERECIDO
     dhcph->siaddr = ifInfo.ip.sin_addr; // NOSSO IP
     // dhcph->giaddr = 0;
     for (int c = 0; c < 16; c++) {
