@@ -40,6 +40,7 @@
 #include <netinet/tcp.h> //TCP header
 #include <netinet/udp.h> //UDP header
 #include <map>
+#include <resolv.h>
 
 #include "dhcp.hpp"
 #include "dhcpD.hpp"
@@ -72,6 +73,8 @@ struct if_info {
     struct sockaddr_in ip;
     struct sockaddr_in mask;
     struct sockaddr_in broadcast;
+    int dnsServersCnt;
+    struct sockaddr_in dnsServers[MAXNS];
 };
 
 enum etherpack_type{ IPv4=1, ARP=2, REVARP=3, IPv6=4 };
@@ -218,14 +221,23 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DHCP_MESSAGE_TYPE,1,value);
 
     // dhcph->options[7-12] = ; //0x36, 0x04, NOSSO IP
+    // dhcph->options[37-42] = ; //0x03, 0x04, NOSSO IP
     value = (unsigned char *)malloc(4);
     value[0] = 0xff & ifInfo.ip.sin_addr.s_addr;
     value[1] = 0xff & ifInfo.ip.sin_addr.s_addr >> 8;
     value[2] = 0xff & ifInfo.ip.sin_addr.s_addr >> 16;
     value[3] = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
     nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DHCP_SERVER_IDENTIFIER,4,value);
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_ROUTERS,4,value);
 
     // dhcph->options[13-18] = ; //0x33, 0x04, TEMPO
+    value = (unsigned char *)malloc(4);
+    value[0] = 0xff;
+    value[1] = 0xff;
+    value[2] = 0xff;
+    value[3] = 0xff;
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DHCP_LEASE_TIME,4,value);
+
     // dhcph->options[19-24] = ; //0x01, 0x04, MASK
     value = (unsigned char *)malloc(4);
     value[0] = 0xff & ifInfo.mask.sin_addr.s_addr;
@@ -242,25 +254,50 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     value[3] = 0xff & ifInfo.broadcast.sin_addr.s_addr >> 24;
     nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_BROADCAST_ADDRESS,4,value);
 
-    // dhcph->options[31-36] = ; //0x02, 0x04, ff, ff, d5, d0
-    // dhcph->options[37-42] = ; //0x03, 0x04, NOSSO IP
+    // dhcph->options[31-36] = ; //0x02, 0x04, ff, ff, d5, d0 //DHO_TIME_OFFSET
+    value = (unsigned char *)malloc(4);
+    value[0] = 0xff;
+    value[1] = 0xff;
+    value[2] = 0xd5;
+    value[3] = 0xd0;
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_TIME_OFFSET,4,value);
     // dhcph->options[43-48] = ; //0x06, 0x04, NOSSO DNS
-    // dhcph->options[49-54] = ; //0x2a, 0x04, NOSSO NTP
-    // dhcph->options[55] = ; //0xff
+    for (int d = 0; d < ifInfo.dnsServersCnt; d++) {
+        value = (unsigned char *)malloc(4);
+        value[0] = 0xff & ifInfo.dnsServers[d].sin_addr.s_addr;
+        value[1] = 0xff & ifInfo.dnsServers[d].sin_addr.s_addr >> 8;
+        value[2] = 0xff & ifInfo.dnsServers[d].sin_addr.s_addr >> 16;
+        value[3] = 0xff & ifInfo.dnsServers[d].sin_addr.s_addr >> 24;
+        nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DOMAIN_NAME_SERVERS,4,value);
+    }
+    // dhcph->options[49-54] = ; //0x2a, 0x04 ///// DHO_NTP_SERVERS
+    value = (unsigned char *)malloc(4);
+    value[0] = 0xc8;
+    value[1] = 0xa0;
+    value[2] = 0x07;
+    value[3] = 0xba;
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_NTP_SERVERS,4,value);
+    value = (unsigned char *)malloc(4);
+    value[0] = 0xc9;
+    value[1] = 0x31;
+    value[2] = 0x94;
+    value[3] = 0x87;
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_NTP_SERVERS,4,value);
+    dhcph->options[nextOpt] = 0xff;// ""END""
     debugDhcp(&(dhcph->options[0]));
     // //SETTING UP UDP
     //
-    // udph->source = 67;
-    // udph->dest = 68;
-    // udph->len = sizeof (struct dhcp_packet);
-    // udph->check ; //O MALDITO
+    udpPart->source = 67;
+    udpPart->dest = 68;
+    udpPart->len = sizeof (struct dhcp_packet);
+    // udpPart->check ; //O MALDITO
     //
     // //SETTING UP IP
     //
-    // iph->version = 4;
-    // iph->ihl = 20;
-    // iph->tos = // TOS = 0x00 para offer e ack, 0x10 para request e discover;
-    // iph->tot_len = sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dhcp_packet);
+    iph->version = 4;
+    iph->ihl = 20;
+    iph->tos = 0x00;// TOS = 0x00 para offer e ack, 0x10 para request e discover;
+    iph->tot_len = sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dhcp_packet);
     //
     // iph->id = htonl (#####); //Ids diferentes para offer e ack
     // iph->frag_off = 0;
@@ -318,7 +355,7 @@ int main(int argc,char *argv[])
 
     double cnt_TCPDHCP = 0;
     double cnt_UDPDHCP = 0;
-
+    res_init();
     system("clear");
     struct if_info srvInterface;
     ioctl(sockd, SIOCGIFADDR, &ifr);
@@ -330,6 +367,11 @@ int main(int argc,char *argv[])
     printf("Out IP       : %s\n", inet_ntoa(srvInterface.ip.sin_addr));
     printf("Out Broadcast: %s\n", inet_ntoa(srvInterface.broadcast.sin_addr));
     printf("Out MASK     : %s\n", inet_ntoa(srvInterface.mask.sin_addr));
+    srvInterface.dnsServersCnt = _res.nscount;
+    for (int d = 0; d < _res.nscount; d++) {
+        srvInterface.dnsServers[d] = *((struct sockaddr_in *)&_res.nsaddr_list[d]);
+        printf("DNS[%d]: %s\n", d, inet_ntoa(srvInterface.dnsServers[d].sin_addr));
+    }
     sendDhcpOffer(srvInterface,"xps","AC:72:89:0A:0B:81", 1);
     #ifdef DEBUGP
     int maxPkt = 4;

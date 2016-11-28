@@ -37,13 +37,13 @@ void debugDhcp(unsigned char * optPointer) {
 							// sendpack();
 							break;
 					}
-					opt+=length;
+					// opt+=length;
 					break;
 				}
 				case DHO_HOST_NAME:{
 					stringstream ss;
 					for (int n = 0; n < length; n++) {
-						ss << optPointer[opt++];
+						ss << optPointer[opt+n];
 					}
 					string hostName = ss.str();
 					printf("host name %s", hostName.c_str());
@@ -51,28 +51,22 @@ void debugDhcp(unsigned char * optPointer) {
 				}
 				case DHO_DHCP_SERVER_IDENTIFIER:{
 					printf("IP ");
-					for (int n = 0; n < length; n++) {
-						printf("%x ", optPointer[opt++]);
-					}
 					break;
 				}
 				case DHO_SUBNET_MASK:{
 					printf("MASK ");
-					for (int n = 0; n < length; n++) {
-						printf("%x ", optPointer[opt++]);
-					}
 					break;
 				}
 				case DHO_BROADCAST_ADDRESS:{
 					printf("BROADCAST ");
-					for (int n = 0; n < length; n++) {
-						printf("%x ", optPointer[opt++]);
-					}
 					break;
 				}
 				default:
-					opt+=length;
+					// opt+=length;
 					break;
+			}
+			for (int n = 0; n < length; n++) {
+				printf("%x ", optPointer[opt++]);
 			}
 			printf("\n");
 		}else{
