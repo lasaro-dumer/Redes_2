@@ -1,0 +1,21 @@
+GET / HTTP/1.1
+Host: www.pudim.com.br
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.90 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding: gzip, deflate, sdch
+Accept-Language: pt-BR,pt;q=0.8,en-US;q=0.6,en;q=0.4
+
+
+
+GET /mod/groupselect/view.php?id=973409 HTTP/1.1
+Host: moodle.pucrs.br
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.90 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Referer: http://moodle.pucrs.br/course/view.php?id=26070
+Accept-Encoding: gzip, deflate, sdch
+Accept-Language: pt-BR,pt;q=0.8,en-US;q=0.6,en;q=0.4
+Cookie: __utma=168878624.76376881.1466115567.1466115567.1466115567.1; __utmz=168878624.1466115567.1.1.utmccn=(direct)|utmcsr=(direct)|utmcmd=(none); _ga=GA1.2.1302437574.1459816430; MoodleSession=bs73iat7to3jtlte0k52r9aqa3; _gat=1; _ga=GA1.3.1302437574.1459816430

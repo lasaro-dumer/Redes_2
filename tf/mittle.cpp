@@ -42,6 +42,7 @@
 #include <map>
 
 #include "dhcp.hpp"
+#include "dhcpD.hpp"
 #include "outputinformation.hpp"
 #include "samples/discover.hpp"
 #include "samples/request.hpp"
@@ -199,6 +200,7 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     dhcph->options[1] = 0x82;
     dhcph->options[2] = 0x53;
     dhcph->options[3] = 0x63;
+    nextOpt+=optLenght;
     printf("magic cookie setted\n");
     // dhcph->options[0-3] = DHCP_OPTIONS_COOKIE;
     // //CAMPOS PARA OFFER
@@ -206,75 +208,40 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     unsigned char *value = (unsigned char *)malloc(2);
     printf("created value, setting it\n");
     value[0] = DHCPOFFER;
-    value[1] = DHCPACK;
-    nextOpt+=optLenght;
-    printf("value %x %x %d\n", value[0], value[1], nextOpt);
+    printf("value %x\n", value[0]);
     nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DHCP_MESSAGE_TYPE,1,value);
-    printf(" %d\n", nextOpt);
-    // dhcph->options[4] = 0x35;
-    // dhcph->options[5] = 0x01;
-    // dhcph->options[6] = 0x02;
+
     // dhcph->options[7-12] = ; //0x36, 0x04, NOSSO IP
+    value = (unsigned char *)malloc(4);
+    value[0] = 0xff & ifInfo.ip.sin_addr.s_addr;
+    value[1] = 0xff & ifInfo.ip.sin_addr.s_addr >> 8;
+    value[2] = 0xff & ifInfo.ip.sin_addr.s_addr >> 16;
+    value[3] = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DHCP_SERVER_IDENTIFIER,4,value);
+
     // dhcph->options[13-18] = ; //0x33, 0x04, TEMPO
     // dhcph->options[19-24] = ; //0x01, 0x04, MASK
+    value = (unsigned char *)malloc(4);
+    value[0] = 0xff & ifInfo.mask.sin_addr.s_addr;
+    value[1] = 0xff & ifInfo.mask.sin_addr.s_addr >> 8;
+    value[2] = 0xff & ifInfo.mask.sin_addr.s_addr >> 16;
+    value[3] = 0xff & ifInfo.mask.sin_addr.s_addr >> 24;
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_SUBNET_MASK,4,value);
+
     // dhcph->options[25-30] = ; //0x1c, 0x04, BROADCAST ADDRESS
+    value = (unsigned char *)malloc(4);
+    value[0] = 0xff & ifInfo.broadcast.sin_addr.s_addr;
+    value[1] = 0xff & ifInfo.broadcast.sin_addr.s_addr >> 8;
+    value[2] = 0xff & ifInfo.broadcast.sin_addr.s_addr >> 16;
+    value[3] = 0xff & ifInfo.broadcast.sin_addr.s_addr >> 24;
+    nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_BROADCAST_ADDRESS,4,value);
+
     // dhcph->options[31-36] = ; //0x02, 0x04, ff, ff, d5, d0
     // dhcph->options[37-42] = ; //0x03, 0x04, NOSSO IP
     // dhcph->options[43-48] = ; //0x06, 0x04, NOSSO DNS
     // dhcph->options[49-54] = ; //0x2a, 0x04, NOSSO NTP
     // dhcph->options[55] = ; //0xff
-    int opt=4;
-    while(opt <= DHCP_MAX_OPTION_LEN) {
-        unsigned char optype = dhcph->options[opt++];
-        unsigned char length = dhcph->options[opt++];
-        if(optype > 0 && optype < 255){//add more cases in 'switch(optype)' if needed
-            printf("[%d]opt %d len %d ",opt,optype,length );
-            switch (optype) {
-                case DHO_DHCP_MESSAGE_TYPE:{
-                    unsigned char dhcpType = dhcph->options[opt];
-                    printf(" dhcpType ");
-                    switch (dhcpType) {//I think this cases maybe enough
-                        case DHCPDISCOVER:
-                            printf("DHCPDISCOVER ");
-                            break;
-                        case DHCPOFFER:
-                            //Montar o pacote
-                            printf("DHCPOFFER ");
-                            // ridepack();
-                            // sendpack();
-                            struct dhcp_packet *dhcpresponse;
-                            break;
-                        case DHCPREQUEST:
-                            printf("DHCPREQUEST ");
-                            break;
-                        case DHCPACK:
-                            //Montar o Pacote
-                            printf("DHCPACK ");
-                            // ridepack();
-                            // sendpack();
-                            break;
-                    }
-                    opt+=length;
-                    break;
-                }
-                case DHO_HOST_NAME:{
-                    stringstream ss;
-                    for (int n = 0; n < length; n++) {
-                        ss << dhcph->options[opt++];
-                    }
-                    string hostName = ss.str();
-                    printf("host name %s", hostName.c_str());
-                    break;
-                }
-                default:
-                    opt+=length;
-                    break;
-            }
-            printf("\n");
-        }else{
-            opt+=length;
-        }
-    }
+    debugDhcp(&(dhcph->options[0]));
     // //SETTING UP UDP
     //
     // udph->source = 67;
