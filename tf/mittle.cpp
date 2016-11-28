@@ -65,6 +65,7 @@ unsigned char buff1[BUFFSIZE]; // buffer de recepcao
 int sockd;
 int on;
 struct ifreq ifr;
+int responseType;
 
 map<string ,struct in_addr> iplist;
 in_addr lastIpAdded;
@@ -172,7 +173,20 @@ int dhcpAddOption(unsigned char * optPointer, int start, char optType, int lengt
     return nextOpt;
 }
 
-void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u_int32_t transId) {
+void sendpack(int s, struct sockaddr_in sAddrIn, iphdr* iph, char* packet){
+    //Send the packet
+    if (sendto (s, packet, iph->tot_len ,  0, (struct sockaddr *) &sAddrIn, sizeof(sAddrIn)) < 0){
+        perror("sendto failed");
+    }
+    //Data sent successfully
+    else
+    {
+        printf ("Packet Send. Length : %d \n" , iph->tot_len);
+    }
+}
+
+
+void sendDhcp(struct if_info ifInfo, string clientName, string clientMac, u_int32_t transId) {
     char datagram[4096];
     printf("setting datagram\n");
     //zero out the packet buffer
@@ -216,7 +230,15 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     // dhcph->options[4-6] = ; //0x35, 0x01, 0x02
     unsigned char *value = (unsigned char *)malloc(2);
     printf("created value, setting it\n");
-    value[0] = DHCPOFFER;
+    switch(responseType)
+    {
+        case 0:
+            value[0] = DHCPOFFER;
+            break;
+        case 1:
+            value[0] = DHCPACK;
+            break;
+    }
     printf("value %x\n", value[0]);
     nextOpt = dhcpAddOption(&(dhcph->options[0]),nextOpt,DHO_DHCP_MESSAGE_TYPE,1,value);
 
@@ -290,7 +312,7 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     udpPart->source = 67;
     udpPart->dest = 68;
     udpPart->len = sizeof (struct dhcp_packet);
-    // udpPart->check ; //O MALDITO
+    udpPart->check = ;
     //
     // //SETTING UP IP
     //
@@ -309,21 +331,9 @@ void sendDhcpOffer(struct if_info ifInfo, string clientName, string clientMac, u
     //
     // iph->check = csum ((unsigned short *) datagram, iph->tot_len);
 
+    sendpack(sockd,ifInfo.ip,iph,datagram);
 }
 
-
-
-void sendpack(int s, struct sockaddr_in sAddrIn, iphdr *iph, unsigned char *packet){
-    //Send the packet
-    if (sendto (s, packet, iph->tot_len ,  0, (struct sockaddr *) &sAddrIn, sizeof (sAddrIn)) < 0){
-        perror("sendto failed");
-    }
-    //Data send successfully
-    else
-    {
-        printf ("Packet Send. Length : %d \n" , iph->tot_len);
-    }
-}
 
 int main(int argc,char *argv[])
 {
@@ -372,7 +382,6 @@ int main(int argc,char *argv[])
         srvInterface.dnsServers[d] = *((struct sockaddr_in *)&_res.nsaddr_list[d]);
         printf("DNS[%d]: %s\n", d, inet_ntoa(srvInterface.dnsServers[d].sin_addr));
     }
-    sendDhcpOffer(srvInterface,"xps","AC:72:89:0A:0B:81", 1);
     #ifdef DEBUGP
     int maxPkt = 4;
     int c = 0;
@@ -458,6 +467,14 @@ int main(int argc,char *argv[])
                             //discover e request => op = 1
                             //offer e ack => op = 2
                             int opt = 4;//skip magic cookie
+
+                            string hostNameTemp;
+                            string hostMacTemp;
+                            for (int c = 0; c < 16; c++) {
+                                hostMacTemp[c] = dhcpPart->chaddr[c]; // MAC DO CLIENTE
+                            }
+                            u_int32_t sequenceNumber = dhcpPart->xid;
+
                             while(opt <= DHCP_MAX_OPTION_LEN) {
                                 unsigned char optype = dhcpPart->options[opt++];
                                 unsigned char length = dhcpPart->options[opt++];
@@ -470,16 +487,19 @@ int main(int argc,char *argv[])
                                             switch (dhcpType) {//I think this cases maybe enough
                                                 case DHCPDISCOVER:
                                                     printf("DHCPDISCOVER ");
+                                                    responseType = 0;
+                                                    // sendDhcpOffer(srvInterface,"xps","AC:72:89:0A:0B:81", 1);
                                                     break;
                                                 case DHCPOFFER:
                                                     //Montar o pacote
                                                     printf("DHCPOFFER ");
                                                     // ridepack();
                                                     // sendpack();
-                                                    struct dhcp_packet *dhcpresponse;
+                                                    // struct dhcp_packet *dhcpresponse;
                                                     break;
                                                 case DHCPREQUEST:
                                                     printf("DHCPREQUEST ");
+                                                    responseType = 1;
                                                     break;
                                                 case DHCPACK:
                                                     //Montar o Pacote
@@ -498,6 +518,7 @@ int main(int argc,char *argv[])
                                             }
                                             string hostName = ss.str();
                                             printf("host name %s", hostName.c_str());
+                                            hostNameTemp = hostName.c_str();
                                             break;
                                         }
                                         default:
@@ -514,7 +535,18 @@ int main(int argc,char *argv[])
                             // monta pacote de resposta
                             //// Verifica o que foi requisitado
                             //// monta resposta com ip x
-
+                            switch(responseType)
+                            {
+                                case 2:
+                                    break;
+                                case 0:
+                                    sendDhcp(srvInterface, hostNameTemp, hostMacTemp, sequenceNumber);
+                                    break;
+                                case 1:
+                                    sendDhcp(srvInterface, hostNameTemp, hostMacTemp, sequenceNumber);
+                                    break;
+                            }
+                            responseType = 2;
                         }
                         uint16_t dUDP = ntohs(udpPart->uh_dport);
 
@@ -542,3 +574,4 @@ int main(int argc,char *argv[])
         //*/
 	}
 }
+
