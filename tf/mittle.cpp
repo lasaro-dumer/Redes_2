@@ -65,8 +65,8 @@ int sockd;
 int on;
 struct ifreq ifr;
 
-map<string ,unsigned int> iplist;
-unsigned int lastIpAdded;
+map<string ,struct in_addr> iplist;
+in_addr lastIpAdded;
 
 struct if_info {
     struct sockaddr_in ip;
@@ -148,12 +148,13 @@ in_addr reservedIP(string name,struct if_info ifInfo){
         u_int32_t oldIP = ifInfo.ip.sin_addr.s_addr;
         u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
         u_int32_t tempIP = oldIP ^ 0xFF;
-        u_int32_t newIp = tempIP & tip;
-        iplist[name] = newIp;
+        struct in_addr newIP;
+        newIP.s_addr = tempIP & tip;
+        iplist[name] = newIP;
         lastIpAdded = newIP;
-        return newIp;
+        return newIP;
     } else {
-        return iplist[name].second;
+        return iplist[name];
     }
 }
 
