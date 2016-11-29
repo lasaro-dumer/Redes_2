@@ -147,18 +147,22 @@ void doDNS(int pNet) {
     //*/
 }
 
-in_addr reservedIP(string name,struct if_info ifInfo){
-    if ( iplist.find(name) == iplist.end() ) {
-        u_int32_t oldIP = ifInfo.ip.sin_addr.s_addr;
-        u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
-        u_int32_t tempIP = oldIP ^ 0xFF;
-        struct in_addr newIP;
-        newIP.s_addr = tempIP & tip;
-        iplist[name] = newIP;
-        lastIpAdded = newIP;
-        return newIP;
-    } else {
-        return iplist[name];
+void reservedIP(string name,string ip){
+    if (iplist.count(name)>0){
+        //return iplist[name];
+        std::cout << " is an element of mymap.\n";
+    }
+    else {
+        printf("Our Ip(ReservedIP): %s", ip);
+        //u_int32_t oldIP = ifInfo.ip.sin_addr.s_addr;
+        //u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
+        //u_int32_t tempIP = oldIP ^ 0xFF;
+        //struct in_addr newIP;
+        //newIP.s_addr = tempIP & tip;
+        //iplist[name] = newIP;
+        //lastIpAdded = newIP;
+        //return newIP;
+        std::cout << " is not an element of mymap.\n";
     }
 }
 
@@ -208,7 +212,7 @@ void sendDhcp(struct if_info ifInfo, string clientName, string clientMac, u_int3
     dhcph->secs = 0;
     dhcph->flags = 0;
     // dhcph->ciaddr = (struct in_addr)0; // OFFER = 0 / ACK = ciaddr from REQUEST or 0
-    dhcph->yiaddr = reservedIP(clientName, ifInfo); // IP OFERECIDO
+    //dhcph->yiaddr = reservedIP(clientName, ifInfo); // IP OFERECIDO
     dhcph->siaddr = ifInfo.ip.sin_addr; // NOSSO IP
     // dhcph->giaddr = 0;
     for (int c = 0; c < 16; c++) {
@@ -312,7 +316,7 @@ void sendDhcp(struct if_info ifInfo, string clientName, string clientMac, u_int3
     udpPart->source = 67;
     udpPart->dest = 68;
     udpPart->len = sizeof (struct dhcp_packet);
-    udpPart->check = ;
+    //udpPart->check = ;
     //
     // //SETTING UP IP
     //
@@ -337,6 +341,7 @@ void sendDhcp(struct if_info ifInfo, string clientName, string clientMac, u_int3
 
 int main(int argc,char *argv[])
 {
+
 	printf("argc: %d\n",argc);
 	if(argc < 2){
 		printf("Inform a network interface.\n");
@@ -378,6 +383,9 @@ int main(int argc,char *argv[])
     printf("Out Broadcast: %s\n", inet_ntoa(srvInterface.broadcast.sin_addr));
     printf("Out MASK     : %s\n", inet_ntoa(srvInterface.mask.sin_addr));
     srvInterface.dnsServersCnt = _res.nscount;
+
+    reservedIP("teste",inet_ntoa(srvInterface.ip.sin_addr));
+
     for (int d = 0; d < _res.nscount; d++) {
         srvInterface.dnsServers[d] = *((struct sockaddr_in *)&_res.nsaddr_list[d]);
         printf("DNS[%d]: %s\n", d, inet_ntoa(srvInterface.dnsServers[d].sin_addr));
@@ -493,8 +501,6 @@ int main(int argc,char *argv[])
                                                 case DHCPOFFER:
                                                     //Montar o pacote
                                                     printf("DHCPOFFER ");
-                                                    // ridepack();
-                                                    // sendpack();
                                                     // struct dhcp_packet *dhcpresponse;
                                                     break;
                                                 case DHCPREQUEST:
@@ -504,8 +510,7 @@ int main(int argc,char *argv[])
                                                 case DHCPACK:
                                                     //Montar o Pacote
                                                     printf("DHCPACK ");
-                                                    // ridepack();
-                                                    // sendpack();
+
                                                     break;
                                             }
                                             opt+=length;
