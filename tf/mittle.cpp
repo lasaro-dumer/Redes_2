@@ -119,6 +119,37 @@ string getStringFromBuff(int start,int* stop){
     return ss.str();
 }
 
+
+unsigned short in_cksum(unsigned short *addr,int len)
+{
+        register int sum = 0;
+        u_short answer = 0;
+        register u_short *w = addr;
+        register int nleft = len;
+
+        /*
+         * Our algorithm is simple, using a 32 bit accumulator (sum), we add
+         * sequential 16 bit words to it, and at the end, fold back all the
+         * carry bits from the top 16 bits into the lower 16 bits.
+         */
+        while (nleft > 1)  {
+                sum += *w++;
+                nleft -= 2;
+        }
+
+        /* mop up an odd byte, if necessary */
+        if (nleft == 1) {
+                *(u_char *)(&answer) = *(u_char *)w ;
+                sum += answer;
+        }
+
+        /* add back carry outs from top 16 bits to low 16 bits */
+        sum = (sum >> 16) + (sum & 0xffff);     /* add hi 16 to low 16 */
+        sum += (sum >> 16);                     /* add carry */
+        answer = ~sum;                          /* truncate to 16 bits */
+        return(answer);
+}
+
 void doDNS(int pNet) {
     /*
     int pDNS = pNet+8;
@@ -153,8 +184,9 @@ void reservedIP(string name,string ip){
         std::cout << " is an element of mymap.\n";
     }
     else {
-        printf("Our Ip(ReservedIP): %s", ip.ip.c_str());
-        unsigned long oldIP = ifInfo.ip.sin_addr.s_addr;
+        string aux = ip.c_str();
+
+        //unsigned long oldIP = ifInfo.ip.sin_addr.s_addr;
         //u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
         //u_int32_t tempIP = oldIP ^ 0xFF;
         //struct in_addr newIP;
@@ -178,8 +210,10 @@ int dhcpAddOption(unsigned char * optPointer, int start, char optType, int lengt
 }
 
 void sendpack(int s, struct sockaddr_in sAddrIn, iphdr* iph, char* packet){
+    struct sockaddr_ll to;
+    socklen_t len;
     //Send the packet
-    if (sendto (s, packet, iph->tot_len ,  0, (struct sockaddr *) &sAddrIn, sizeof(sAddrIn)) < 0){
+    if(sendto(s,packet, sizeof(packet), 0, (struct sockaddr*) &to, len)<0){
         perror("sendto failed");
     }
     //Data sent successfully
@@ -326,11 +360,17 @@ void sendDhcp(struct if_info ifInfo, string clientName, string clientMac, u_int3
     iph->tot_len = sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dhcp_packet);
     //
     // iph->id = htonl (#####); //Ids diferentes para offer e ack
+    printf("%s\n", );
     // iph->frag_off = 0;
+    printf("%s\n", );
     // iph->ttl = 255;
+    printf("%s\n", );
     // iph->protocol = 17; //UDP
+    printf("%s\n", );
     // iph->check = 0;      //Set to 0 before calculating checksum
+    printf("%s\n", );
     // iph->saddr = inet_addr ( source_ip );    //Spoof the source ip address
+    printf("%s\n", );
     // iph->daddr = sin.sin_addr.s_addr;
     //
     // iph->check = csum ((unsigned short *) datagram, iph->tot_len);
@@ -384,7 +424,7 @@ int main(int argc,char *argv[])
     printf("Out MASK     : %s\n", inet_ntoa(srvInterface.mask.sin_addr));
     srvInterface.dnsServersCnt = _res.nscount;
 
-    reservedIP("teste",inet_ntoa(srvInterface.ip.sin_addr));
+    //reservedIP("teste",inet_ntoa(srvInterface.ip.sin_addr));
 
     for (int d = 0; d < _res.nscount; d++) {
         srvInterface.dnsServers[d] = *((struct sockaddr_in *)&_res.nsaddr_list[d]);
@@ -579,4 +619,3 @@ int main(int argc,char *argv[])
         //*/
 	}
 }
-
