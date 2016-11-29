@@ -153,8 +153,8 @@ void reservedIP(string name,string ip){
         std::cout << " is an element of mymap.\n";
     }
     else {
-        printf("Our Ip(ReservedIP): %s", ip);
-        //u_int32_t oldIP = ifInfo.ip.sin_addr.s_addr;
+        printf("Our Ip(ReservedIP): %s", ip.ip.c_str());
+        unsigned long oldIP = ifInfo.ip.sin_addr.s_addr;
         //u_int32_t tip = 0xff & ifInfo.ip.sin_addr.s_addr >> 24;
         //u_int32_t tempIP = oldIP ^ 0xFF;
         //struct in_addr newIP;
