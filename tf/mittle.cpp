@@ -15,6 +15,8 @@
 #include <sstream>
 #include <iostream>
 #include <queue>
+#include <linux/if_packet.h>
+#include <net/ethernet.h>
 
 #ifndef __USE_MISC
 #define __USE_MISC 1
@@ -360,17 +362,17 @@ void sendDhcp(struct if_info ifInfo, string clientName, string clientMac, u_int3
     iph->tot_len = sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dhcp_packet);
     //
     // iph->id = htonl (#####); //Ids diferentes para offer e ack
-    printf("%s\n", );
+    //printf("%s\n", );
     // iph->frag_off = 0;
-    printf("%s\n", );
+    //printf("%s\n", );
     // iph->ttl = 255;
-    printf("%s\n", );
+    //printf("%s\n", );
     // iph->protocol = 17; //UDP
-    printf("%s\n", );
+    //printf("%s\n", );
     // iph->check = 0;      //Set to 0 before calculating checksum
-    printf("%s\n", );
+    //printf("%s\n", );
     // iph->saddr = inet_addr ( source_ip );    //Spoof the source ip address
-    printf("%s\n", );
+    //printf("%s\n", );
     // iph->daddr = sin.sin_addr.s_addr;
     //
     // iph->check = csum ((unsigned short *) datagram, iph->tot_len);
