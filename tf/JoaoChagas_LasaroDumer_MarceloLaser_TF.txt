@@ -1,0 +1,9 @@
+RELATÓRIO DO TRABALHO FINAL DE REDES 2/LAB REDES
+
+JOÃO PEDRO CHAGAS, LÁSARO CURTINAZ DUMER, MARCELO SCHMITT LASER
+11100088-1         11112375-8             11202261-1
+
+
+O trabalho final foi implementado em C++, utilizando os cabeçalhos das structs padrões do Linux para os headers dos pacotes. Foi implementada a funcionalidade de captura e apresentação dos pacotes DHCP, realizando a leitura e identificação das opções de cada pacote. Foi parcialmente implementada a funcionalidade de montagem de pacotes de resposta de tipo OFFER e ACK, mas esta funcionalidade não foi concluída devido a problemas com o cabeçalho do pacote IP, principalmente relativo ao checksum. Também foi parcialmente implementada a funcionalidade de captura de pacotes HTTP para identificação do histórico de navegação do nodo atacado, mas devido a não conclusão das funcionalidades de DHCP Spoofing, esta funcionalidade não pode ser testada.
+
+Apesar dos problemas na montagem do cabeçalho IP, o pacote DHCP está completo, possuindo todos os campos e opções necessárias para a devida atribuição de endereço, máscara de rede e gateway padrão para uma máquina atacada. Também foram utilizados raw sockets para a implementação de todo o trabalho, o que causou várias das dificuldades que encontramos.
