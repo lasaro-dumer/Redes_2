@@ -65,6 +65,7 @@ void printMac(unsigned char *ptrMac){
     do{
         printf("%s%02x",(i == ETHER_ADDR_LEN) ? " " : ":",*ptr++);
     }while(--i>0);
+    printf("\n");
 }
 /* about bytes conversion see: http://beej.us/guide/bgnet/output/html/multipage/htonsman.html
 htons() Host TO network Short
@@ -178,6 +179,7 @@ int main(int argc,char *argv[])
 
         struct ether_header *etHdr = (struct ether_header *) buff1;
         enum etherpack_type pktype = getPackageType(etHdr->ether_type);
+        printMac(etHdr->ether_dhost);
         switch (pktype) {
             case IPv4:
             {
