@@ -42,11 +42,6 @@
 #include <netinet/tcp.h> //TCP header
 #include <netinet/udp.h> //UDP header
 
-#include "dnsh.h"
-#ifdef DNSSAMPLE
-#include "dnssample.h"
-#endif
-
 #define BUFFSIZE 1518
 #define TRUE 1
 #define FALSE 0
@@ -121,32 +116,6 @@ string getStringFromBuff(int start,int* stop){
     return ss.str();
 }
 
-void doDNS(int pNet) {
-    int pDNS = pNet+8;
-    struct DNS_HEADER *dnsPart = (struct DNS_HEADER *)&buff1[pDNS];
-    #ifdef DEBUG
-    printf("DNS ID: %04X QR %d OP %d AA %d TC %d RD %d RC %d ",ntohs(dnsPart->id),dnsPart->qr,dnsPart->opcode,dnsPart->aa,dnsPart->tc,dnsPart->rd,dnsPart->rcode);
-    printf("FLAGS: %02X%02X",buff1[pDNS+2],buff1[pDNS+3]);
-    printf(" QC %d AC %d",ntohs(dnsPart->q_count),ntohs(dnsPart->ans_count));
-    #endif
-    int pQst = pDNS+12;
-    int stop = pQst;
-    string site = getStringFromBuff(pQst,&stop);
-    struct QUESTION *qst = (struct QUESTION *)&buff1[stop];
-    #ifdef DEBUG
-    cout << " Site: " << site;
-    cout << " QTYPE: " << hex << ntohs(qst->qtype);
-    cout << endl;
-    #endif
-    int anw = stop+1;
-    string ansName = getStringFromBuff(anw,&stop);
-    #ifdef DEBUG
-    cout << " Answear: " << ansName;
-    //cout << " QTYPE: " << hex << ntohs(qst->qtype);
-    cout << endl;
-    #endif
-}
-
 int main(int argc,char *argv[])
 {
 	printf("argc: %d\n",argc);
@@ -198,14 +167,8 @@ int main(int argc,char *argv[])
     map<uint16_t, unsigned int> TCPports;
     map<uint16_t, unsigned int> UDPports;
 
-    system("clear");
 	while (1) {
-        #ifndef DNSSAMPLE
         ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
-        #else
-        ssize_t pktSize = 121;
-        dnsResponseSample(&buff1[0]);
-        #endif
         cnt_TOTAL++;
         totalSize = totalSize + pktSize;
         if(minSize > pktSize)
@@ -215,28 +178,6 @@ int main(int argc,char *argv[])
 
         struct ether_header *etHdr = (struct ether_header *) buff1;
         enum etherpack_type pktype = getPackageType(etHdr->ether_type);
-        /*- Geral
-            V Apresentar min/max/média do tamanho dos pacotes recebidos
-        - Nível de Enlace
-            V Quantidade e porcentagem de ARP Requests e ARP Reply
-        - Nível de Rede
-            V Quantidade e porcentagem de pacotes ICMP
-            V Quantidade e porcentagem de ICMP Echo Request e ICMP Echo Reply
-            V Lista com os 5 IPs mais acessados na rede
-        - Nível de Transporte
-            V Quantidade e porcentagem de pacotes UDP
-            V Quantidade e porcentagem de pacotes TCP
-            V Número de conexões TCP iniciadas
-            V Lista com as 5 portas TCP mais acessadas
-            V Lista com as 5 portas UDP mais acessadas
-        - Nível de Aplicação
-            V Quantidade e porcentagem de pacotes HTTP      (TCP source port == 80)
-            V Quantidade e porcentagem de pacotes DNS       (UDP source port == 53)
-            V Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
-                V   HTTPS (TCP source port == 443)
-                V   DHCP (port 67 and 68)
-            - Lista com os 5 sites mais acessados
-        */
         switch (pktype) {
             case IPv4:
             {
@@ -319,7 +260,6 @@ int main(int argc,char *argv[])
 
                         if(sUDP == 53){
                             cnt_DNS++;
-                            doDNS(p);
                         }else if(sUDP == 67 || sUDP == 68){
                             cnt_UDPDHCP++;
                         }else {
@@ -333,7 +273,6 @@ int main(int argc,char *argv[])
 
                         if(dUDP == 53){
                             cnt_DNS++;
-                            doDNS(p);
                         }else if(dUDP == 67 || dUDP == 68){
                             cnt_UDPDHCP++;
                         }else {
@@ -368,7 +307,7 @@ int main(int argc,char *argv[])
         }
         //*
         #ifndef DEBUG
-        system("clear");
+        // system("clear");
         printf("TOTAL : %.f\n", cnt_TOTAL);
         printf("SIZE\n");
         printf("\tMIN  : %.f\n", minSize);
