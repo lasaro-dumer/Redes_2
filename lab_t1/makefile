@@ -1,6 +1,6 @@
 GCC = g++
 CFLAGS = -std=c++11
-SNIF = monitor.cpp
+SNIF = monitor.cpp counter.cpp printer.cpp
 BIN = sniffer.o
 
 default:

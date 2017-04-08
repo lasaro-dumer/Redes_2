@@ -1,22 +1,6 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <float.h>
-#include <sstream>
-#include <iostream>
-
-#include <net/if.h>
-#include <netinet/ether.h>
-#include <netinet/ip.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <netinet/in_systm.h>
-
-#include <netinet/in_icmp.h>
-#include <netinet/tcp.h>
-#include <netinet/udp.h>
-
+#include "counter.hpp"
+#ifndef printerH
+#define printerH
 using namespace std;
 
 class printer
@@ -30,5 +14,6 @@ class printer
 		void printTCP(struct tcphdr *tcpPart);
 		void printICMPv6();
 		void printEth(struct ether_header *ethHdr);
-		void printStats();
-}
+		void printStats(counter cnt);
+};
+#endif
