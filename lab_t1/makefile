@@ -1,8 +1,9 @@
 GCC = g++
-STD = -std=c++11
-LD_FLAGS = -DDEBUG
+CFLAGS = -std=c++11
 SNIF = monitor.cpp
 BIN = sniffer.o
 
 default:
-	$(GCC) $(SNIF) -o $(BIN) $(LD_FLAGS) $(STD)
+	$(GCC) $(SNIF) -o $(BIN) $(CFLAGS)
+debug: CFLAGS += -DDEBUG
+debug: default
