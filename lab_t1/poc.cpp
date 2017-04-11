@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <iostream>
+#include <iomanip>
 
 #ifndef __USE_MISC
 #define __USE_MISC 1
@@ -41,8 +42,17 @@ struct dois_int {
     int first;
     int second;
 };
-
-int main(int argc,char *argv[])
+int main(int argc, char const *argv[]) {
+	double vf = 99.3123;
+	cout.setf(ios::fixed, ios::floatfield); // set fixed floating format
+	cout.precision(2); // for fixed format, two decimal places
+	// cout << fixed << setprecision(2); // same effects, but using manipulators
+	cout << vf << '\n';
+	vf = 99.9999;
+	cout << vf << '\n';
+	return 0;
+}
+int main2(int argc,char *argv[])
 {
     int buff[3];
     buff[0] = 32;

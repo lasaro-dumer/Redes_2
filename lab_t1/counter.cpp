@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <sstream>
 #include "counter.hpp"
 
 bool cmp(pair<string,unsigned int> const & a, pair<string,unsigned int> const & b)
@@ -42,31 +43,35 @@ void counter::addIPRecv(struct in_addr ip){
     else
         IPsDest[dIP] = IPsDest[dIP]+1;
 }
-void counter::printMostUsedProtocols(){
+string counter::printMostUsedProtocols(){
+	stringstream ss;
 	if(!APPportsSource.empty()){
 		vector< pair<uint16_t,unsigned int> > appPSs;
 		copy(APPportsSource.begin(), APPportsSource.end(), back_inserter(appPSs));
 		sort(appPSs.begin(), appPSs.end(), cmp2);
-		printf("Most used application protocol on transmission: %u (%u)\n", appPSs[0].first, appPSs[0].second);
+		ss << "Most used application protocol on transmission: "<<appPSs[0].first<<" ("<<appPSs[0].second<<")"<<endl;
 	}
 	if(!APPportsDest.empty()){
 		vector< pair<uint16_t,unsigned int> > appPDs;
 		copy(APPportsDest.begin(), APPportsDest.end(), back_inserter(appPDs));
 		sort(appPDs.begin(), appPDs.end(), cmp2);
-		printf("Most used application protocol on receive: %u (%u)\n", appPDs[0].first, appPDs[0].second);
+		ss << "Most used application protocol on receive: "<<appPDs[0].first<<" ("<<appPDs[0].second<<")"<<endl;
 	}
+	return ss.str();
 }
-void counter::printMostUsedIPs(){
+string counter::printMostUsedIPs(){
+	stringstream ss;;
 	if(!IPsSource.empty()){
 		vector< pair<string,unsigned int> > ipsS;
 		copy(IPsSource.begin(), IPsSource.end(), back_inserter(ipsS));
 		sort(ipsS.begin(), ipsS.end(), cmp);
-		printf("IP that sent most packages: %s (%u)\n", ipsS[0].first.c_str(), ipsS[0].second);
+		ss << "IP that sent most packages: "<<ipsS[0].first<<" ("<<ipsS[0].second<<")"<<endl;
 	}
 	if(!IPsDest.empty()){
 		vector< pair<string,unsigned int> > ipsD;
 		copy(IPsDest.begin(), IPsDest.end(), back_inserter(ipsD));
 		sort(ipsD.begin(), ipsD.end(), cmp);
-		printf("IP that received most packages: %s (%u)\n", ipsD[0].first.c_str(), ipsD[0].second);
+		ss<<"IP that received most packages: "<<ipsD[0].first<<" ("<<ipsD[0].second<<")"<<endl;
 	}
+	return ss.str();
 }

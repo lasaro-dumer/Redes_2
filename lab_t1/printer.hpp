@@ -6,14 +6,14 @@ using namespace std;
 class printer
 {
 	public:
-		void printIPv4(struct ip *ipPart);
-		void printUDP(struct udphdr *udpPart);
-		void printARP(struct arphdr *arpPart);
-		void printIPv6();
-		void printICMP(struct icmphdr *icmpPart);
-		void printTCP(struct tcphdr *tcpPart);
-		void printICMPv6();
-		void printEth(struct ether_header *ethHdr);
-		void printStats(counter cnt);
+		string printIPv4(struct ip *ipPart);
+		string printUDP(struct udphdr *udpPart);
+		string printARP(struct arphdr *arpPart);
+		string printIPv6(struct ip6_hdr *ipv6Hdr);
+		string printICMP(struct icmphdr *icmpPart);
+		string printTCP(struct tcphdr *tcpPart);
+		string printICMPv6();
+		string printEth(struct ether_header *ethHdr);
+		string printStats(counter cnt);
 };
 #endif

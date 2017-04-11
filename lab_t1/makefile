@@ -7,3 +7,5 @@ default:
 	$(GCC) $(SNIF) -o $(BIN) $(CFLAGS)
 debug: CFLAGS += -DDEBUG
 debug: default
+curses: CFLAGS += -DPCUR -lncurses
+curses: debug

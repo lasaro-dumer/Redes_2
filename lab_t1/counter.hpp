@@ -32,7 +32,7 @@ public:
 	void addAppPortRecv(u_int16_t port);
 	void addIPSend(struct in_addr ip);
 	void addIPRecv(struct in_addr ip);
-	void printMostUsedProtocols();
-	void printMostUsedIPs();
+	string printMostUsedProtocols();
+	string printMostUsedIPs();
 };
 #endif
