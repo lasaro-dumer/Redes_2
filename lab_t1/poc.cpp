@@ -50,6 +50,9 @@ int main(int argc, char const *argv[]) {
 	cout << vf << '\n';
 	vf = 99.9999;
 	cout << vf << '\n';
+
+	u_short off = 0x4000;
+
 	return 0;
 }
 int main2(int argc,char *argv[])

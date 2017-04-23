@@ -22,20 +22,33 @@
 
 using namespace std;
 
-string prettyMAC(unsigned char *ptrMac){
-	stringstream ss;
-	ss.setf(ios_base::uppercase);
-	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
-		ss << setfill('0') << setw(2) <<  hex << (unsigned int)(unsigned char)(ptrMac[i]) << (i < (ETHER_ADDR_LEN-1) ? ':':' ');
-	}
-	//ss.unsetf(ios_base::uppercase);
-	return ss.str();
-}
+string hexString(unsigned int value, int width = 4, bool uppercase = true, bool prefix = true);
+string getEtherType(u_int16_t ether_type);
+string prettyMAC(unsigned char *ptrMac);
 
 string printer::printIPv4(struct ip *ipPart)
 {
+	unsigned int flags = (ntohs(ipPart->ip_off) & (IP_RF & IP_DF & IP_MF));
+	unsigned int offset = (ntohs(ipPart->ip_off) & (IP_OFFMASK));
+	bool reserved = (flags & (IP_RF));
+	bool dontFrag = (flags & (IP_DF));
+	bool moreFrag = (flags & (IP_MF));
 	stringstream ss;
 	ss << "IPv4" << endl;
+	ss << "\tVersion: " << ipPart->ip_v << endl;
+	ss << "\tHeader Length: " << (ipPart->ip_hl*4) << " bytes" << endl;
+	ss << "\tTotal Length: " << ntohs(ipPart->ip_len) << endl;
+	ss << "\tIdentification: " << ntohs(ipPart->ip_id) << endl;
+	ss << "\tFlags: " << hexString(flags) << endl;
+	ss << "\t\tReserved: " << reserved << endl;
+	ss << "\t\tDon't fragment: " << dontFrag << endl;
+	ss << "\t\tMore fragments: " << moreFrag << endl;
+	ss << "\tFragment offset: " << hexString(offset) << endl;//REVIEW
+	ss << "\tTime to live: " << (uint16_t)ipPart->ip_ttl << endl;//REVIEW
+	ss << "\tProtocol: " << (uint16_t)ipPart->ip_p << endl;//REVIEW
+	ss << "\tHeader checksum: " << ipPart->ip_sum << endl;//REVIEW
+	ss << "\tSource: " << inet_ntoa(ipPart->ip_src) << endl;
+	ss << "\tDestination: " << inet_ntoa(ipPart->ip_dst) << endl;
 	return ss.str();
 }
 
@@ -87,7 +100,7 @@ string printer::printEth(struct ether_header *ethHdr)
 	ss << "Ethernet:" << endl;
 	ss << "\tDestination host MAC: " << prettyMAC(ethHdr->ether_dhost) << endl;
 	ss << "\tSource host MAC: " << prettyMAC(ethHdr->ether_shost) << endl;
-	ss << "\tType: " << hex << ethHdr->ether_type << endl;
+	ss << "\tType: " << getEtherType(ethHdr->ether_type) << " ("<< hexString(ntohs(ethHdr->ether_type)) <<")" << endl;
 	return ss.str();
 }
 
@@ -108,5 +121,40 @@ string printer::printStats(counter cnt)
 	ss << cnt.printMostUsedProtocols();
 	ss << cnt.printMostUsedIPs();
 	//printf("%s\n", ss.str().c_str());
+	return ss.str();
+}
+
+string hexString(unsigned int value, int width, bool uppercase, bool prefix)
+{
+	stringstream ss;
+	if(prefix)
+		ss << "0x";
+	if(uppercase)
+		ss.setf(ios_base::uppercase);
+	ss << setw(width) << setfill('0');
+	ss << hex << value;
+	return ss.str();
+}
+
+string getEtherType(u_int16_t ether_type){
+	switch (ntohs(ether_type)) {
+		case ETHERTYPE_IP:
+			return "IPv4";
+		case ETHERTYPE_ARP:
+			return "ARP";
+		case ETHERTYPE_IPV6:
+			return "IPv6";
+		default:
+			return "Other";
+	}
+}
+
+string prettyMAC(unsigned char *ptrMac){
+	stringstream ss;
+	ss.setf(ios_base::uppercase);
+	for (int i = 0; i < ETHER_ADDR_LEN; i++) {
+		ss << setfill('0') << setw(2) <<  hex << (unsigned int)(unsigned char)(ptrMac[i]) << (i < (ETHER_ADDR_LEN-1) ? ':':' ');
+	}
+	//ss.unsetf(ios_base::uppercase);
 	return ss.str();
 }
