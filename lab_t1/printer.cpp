@@ -26,6 +26,8 @@ string hexString(unsigned int value, int width = 4, bool uppercase = true, bool 
 string getEtherType(u_int16_t ether_type);
 string prettyMAC(unsigned char *ptrMac);
 string getUDPProtocol(u_int16_t port);
+string getICMPTypeName(u_int8_t type);
+string getICMPCodeText(u_int8_t type, u_int8_t code);
 
 string printer::printIPv4(struct ip *ipPart)
 {
@@ -82,6 +84,9 @@ string printer::printICMP(struct icmphdr *icmpPart)
 {
 	stringstream ss;
 	ss << "ICMP" << endl;
+	ss << "\tType: " << getICMPTypeName(icmpPart->type) << " (" << hexString(icmpPart->type, 2) << ")" << endl;
+	ss << "\tCode: " << getICMPCodeText(icmpPart->type, icmpPart->code) << " (" << hexString(icmpPart->code, 2) << ")" << endl;
+	ss << "\tChecksum: " << ntohs(icmpPart->checksum) << " (" << hexString(ntohs(icmpPart->checksum)) << ")" << endl;
 	return ss.str();
 }
 
@@ -201,4 +206,107 @@ string getUDPProtocol(u_int16_t port){
 		default:
 			return "Other";
 	}
+}
+
+string getICMPTypeName(u_int8_t type){
+	switch (type) {
+		case 0:
+			return "Echo Reply";
+		case 3:
+			return "Destination Unreachable";
+		case 4:
+			return "Source Quench";
+		case 5:
+			return "Redirect";
+		case 8:
+			return "Echo";
+		case 9:
+			return "Router Advertisement";
+		case 10:
+			return "Router Selection";
+		case 11:
+			return "Time Exceeded";
+		case 12:
+			return "Parameter Problem";
+		case 13:
+			return "Timestamp";
+		case 14:
+			return "Timestamp Reply";
+		case 15:
+			return "Information Request";
+		case 16:
+			return "Information Reply";
+		case 17:
+			return "Address Mask Request";
+		case 18:
+			return "Address Mask Reply";
+		case 30:
+			return "Traceroute";
+		default:
+			return "UNKNOWN";
+	}
+}
+
+string getICMPCodeText(u_int8_t type, u_int8_t code){
+	switch (type) {
+		case 3:
+			switch (code) {
+				case 0:
+					return "Net Unreachable";
+				case 1:
+					return "Host Unreachable";
+				case 2:
+					return "Protocol Unreachable";
+				case 3:
+					return "Port Unreachable";
+				case 4:
+					return "Fragmentation Needed & DF Set";
+				case 5:
+					return "Source Route Failed";
+				case 6:
+					return "Destination Network Unknown";
+				case 7:
+					return "Destination Host Unknown";
+				case 8:
+					return "Source Host Isolated";
+				case 9:
+					return "Network Administratively Prohibited";
+				case 10:
+					return "Host Administratively Prohibited";
+				case 11:
+					return "Network Unreachable for TOS";
+				case 12:
+					return "Host Unreachable for TOS";
+				case 13:
+					return "Communication Administratively Prohibited";
+			}
+		case 5:
+			switch (code) {
+				case 0:
+					return "Redirect Datagram for the Network";
+				case 1:
+					return "Redirect Datagram for the Host";
+				case 2:
+					return "Redirect Datagram for the TOS & Network";
+				case 3:
+					return "Redirect Datagram for the TOS & Host";
+			}
+		case 11:
+			switch (code) {
+				case 0:
+					return "Time to Live exceeded in Transit";
+				case 1:
+					return "Fragment Reassembly Time Exceeded";
+			}
+		case 12:
+			switch (code) {
+				case 0:
+					return "Pointer indicates the error";
+				case 1:
+					return "Missing a Required Option";
+				case 2:
+					return "Bad Length";
+			}
+	}
+	return "None";
 }
