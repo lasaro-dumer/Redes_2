@@ -25,6 +25,7 @@ using namespace std;
 string hexString(unsigned int value, int width = 4, bool uppercase = true, bool prefix = true);
 string getEtherType(u_int16_t ether_type);
 string prettyMAC(unsigned char *ptrMac);
+string getUDPProtocol(u_int16_t port);
 
 string printer::printIPv4(struct ip *ipPart)
 {
@@ -43,7 +44,7 @@ string printer::printIPv4(struct ip *ipPart)
 	ss << "\t\tReserved: " << reserved << endl;
 	ss << "\t\tDon't fragment: " << dontFrag << endl;
 	ss << "\t\tMore fragments: " << moreFrag << endl;
-	ss << "\tFragment offset: " << hexString(offset) << endl;//REVIEW
+	ss << "\tFragment offset: " << offset << "(" << hexString(offset) << ")" << endl;//REVIEW
 	ss << "\tTime to live: " << (uint16_t)ipPart->ip_ttl << endl;//REVIEW
 	ss << "\tProtocol: " << (uint16_t)ipPart->ip_p << endl;//REVIEW
 	ss << "\tHeader checksum: " << ipPart->ip_sum << endl;//REVIEW
@@ -56,6 +57,10 @@ string printer::printUDP(struct udphdr *udpPart)
 {
 	stringstream ss;
 	ss << "UDP" << endl;
+	ss << "\tSource port: " << getUDPProtocol(udpPart->source)  << "(" << ntohs(udpPart->source) << ")" << endl;
+	ss << "\tDestination port: " << getUDPProtocol(udpPart->dest)  << "(" << ntohs(udpPart->dest) << ")" << endl;
+	ss << "\tLength: " << ntohs(udpPart->len) << endl;
+	ss << "\tChecksum: " << ntohs(udpPart->check) << "(" << hexString(ntohs(udpPart->check)) << ")" << endl;
 	return ss.str();
 }
 
@@ -157,4 +162,43 @@ string prettyMAC(unsigned char *ptrMac){
 	}
 	//ss.unsetf(ios_base::uppercase);
 	return ss.str();
+}
+
+string getUDPProtocol(u_int16_t port){
+	/*
+	*/
+	switch (ntohs(port)) {
+		case 7:
+			return "echo";
+		case 19:
+			return "chargen";
+		case 37:
+			return "time";
+		case 53:
+			return "domain";
+		case 67:
+			return "bootps (DHCP)";
+		case 68:
+			return "bootpc (DHCP)";
+		case 69:
+			return "tftp";
+		case 137:
+			return "netbios-ns";
+		case 138:
+			return "netbios-dgm";
+		case 161:
+			return "snmp";
+		case 162:
+			return "snmp-trap";
+		case 500:
+			return "isakmp";
+		case 514:
+			return "syslog";
+		case 520:
+			return "rip";
+		case 33434:
+			return "traceroute";
+		default:
+			return "Other";
+	}
 }

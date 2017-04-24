@@ -49,13 +49,13 @@ string counter::printMostUsedProtocols(){
 		vector< pair<uint16_t,unsigned int> > appPSs;
 		copy(APPportsSource.begin(), APPportsSource.end(), back_inserter(appPSs));
 		sort(appPSs.begin(), appPSs.end(), cmp2);
-		ss << "Most used application protocol on transmission: "<<appPSs[0].first<<" ("<<appPSs[0].second<<")"<<endl;
+		ss << "Most used application protocol on transmission: "<<appPSs[0].first<<" (Count: "<<appPSs[0].second<<")"<<endl;
 	}
 	if(!APPportsDest.empty()){
 		vector< pair<uint16_t,unsigned int> > appPDs;
 		copy(APPportsDest.begin(), APPportsDest.end(), back_inserter(appPDs));
 		sort(appPDs.begin(), appPDs.end(), cmp2);
-		ss << "Most used application protocol on receive: "<<appPDs[0].first<<" ("<<appPDs[0].second<<")"<<endl;
+		ss << "Most used application protocol on receive: "<<appPDs[0].first<<" (Count: "<<appPDs[0].second<<")"<<endl;
 	}
 	return ss.str();
 }
