@@ -28,6 +28,7 @@ string prettyMAC(unsigned char *ptrMac);
 string getUDPProtocol(u_int16_t port);
 string getICMPTypeName(u_int8_t type);
 string getICMPCodeText(u_int8_t type, u_int8_t code);
+string getTCPProtocol(u_int16_t port);
 
 string printer::printIPv4(struct ip *ipPart)
 {
@@ -94,6 +95,22 @@ string printer::printTCP(struct tcphdr *tcpPart)
 {
 	stringstream ss;
 	ss << "TCP" << endl;
+	ss << "\tSource port: " << getTCPProtocol(ntohs(tcpPart->source)) << " (" << ntohs(tcpPart->source) << ")" << endl;
+	ss << "\tDestination port: " << getTCPProtocol(ntohs(tcpPart->dest)) << " (" << ntohs(tcpPart->dest) << ")" << endl;
+	ss << "\tSequencce number: " << ntohs(tcpPart->seq) << endl;
+	ss << "\tAcknowledgment number: " << ntohs(tcpPart->ack_seq) << endl;
+	ss << "\tOffset: " << tcpPart->doff << endl;
+	ss << "\tFlags" << endl;
+	ss << "\t\t" << tcpPart->res2 << "-CWR/ECN-Echo" << endl;
+	ss << "\t\t" << tcpPart->urg << "-Urgent pointer valid" << endl;
+	ss << "\t\t" << tcpPart->ack << "-Ack field value valid" << endl;
+	ss << "\t\t" << tcpPart->psh << "-Push data" << endl;
+	ss << "\t\t" << tcpPart->rst << "-Reset connection" << endl;
+	ss << "\t\t" << tcpPart->syn << "-Synchronize sequence numbers" << endl;
+	ss << "\t\t" << tcpPart->fin << "-No more data; Finish connection" << endl;
+	ss << "\tWindow: " << ntohs(tcpPart->window) << " (" << hexString(ntohs(tcpPart->window)) << ")" << endl;
+	ss << "\tChecksum: " << ntohs(tcpPart->check) << " (" << hexString(ntohs(tcpPart->check)) << ")" << endl;
+	ss << "\tUrgent Pointer	" << ntohs(tcpPart->urg_ptr) << endl;
 	return ss.str();
 }
 
@@ -309,4 +326,50 @@ string getICMPCodeText(u_int8_t type, u_int8_t code){
 			}
 	}
 	return "None";
+}
+
+string getTCPProtocol(u_int16_t port){
+	switch (port) {
+		case 7:
+			return "echo";
+		case 19:
+			return "chargen";
+		case 20:
+			return "ftp-data";
+		case 21:
+			return "ftp-control";
+		case 22:
+			return "ssh";
+		case 23:
+			return "telnet";
+		case 25:
+			return "smtp";
+		case 53:
+			return "domain";
+		case 79:
+			return "finger";
+		case 80:
+			return "http";
+		case 110:
+			return "pop3";
+		case 111:
+			return "sunrpc";
+		case 119:
+			return "ntp";
+		case 139:
+			return "etbios-ssn";
+		case 143:
+			return "imap";
+		case 179:
+			return "bgp";
+		case 389:
+			return "ldap";
+		case 443:
+			return "https (ssl)";
+		case 445:
+			return "microsoft-ds";
+		case 1080:
+			return "socks";
+	}
+	return "other";
 }
