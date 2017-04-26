@@ -9,6 +9,7 @@
 #include <net/if.h>
 #include <netinet/ether.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -78,6 +79,19 @@ string printer::printIPv6(struct ip6_hdr *ipv6Hdr)
 {
 	stringstream ss;
 	ss << "IPv6" << endl;
+	/* 4 bits version, 8 bits TC, 20 bits flow-ID */
+	uint32_t ip6_Vr_Tc_Flow = ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_flow;
+	uint16_t version = (ip6_Vr_Tc_Flow & 0xFF);
+	ss << "\tVersion: " << hexString(ntohs(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_flow)) << endl;
+	ss << "\tVersion: " << hexString(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_flow) << endl;
+	ss << "\tVersion: " << version << endl;
+	ss << "\tTraffic Class: " << endl;
+	ss << "\tFlow Label: " << endl;
+	ss << "\tPayload Length: " << endl;
+	ss << "\tNext Header: " << endl;
+	ss << "\tHop Limit: " << endl;
+	ss << "\tSource Address: " << endl;
+	ss << "\tDestination Address: " << endl;
 	return ss.str();
 }
 
