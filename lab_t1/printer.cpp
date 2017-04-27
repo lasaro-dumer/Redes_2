@@ -16,6 +16,7 @@
 #include <netinet/in_systm.h>
 
 #include <netinet/ip_icmp.h>
+#include <netinet/icmp6.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 
@@ -23,6 +24,9 @@
 
 using namespace std;
 
+#define IP6_VERSION 0xF0000000
+#define IP6_TRCLASS 0x0FF00000
+#define IP6_FLOWID  0x000FFFFF
 string hexString(unsigned int value, int width = 4, bool uppercase = true, bool prefix = true);
 string getEtherType(u_int16_t ether_type);
 string prettyMAC(unsigned char *ptrMac);
@@ -30,6 +34,8 @@ string getUDPProtocol(u_int16_t port);
 string getICMPTypeName(u_int8_t type);
 string getICMPCodeText(u_int8_t type, u_int8_t code);
 string getTCPProtocol(u_int16_t port);
+string prettyIPv6Addr(uint8_t* addr);
+string getIPv6NextHeader(uint16_t header);
 
 string printer::printIPv4(struct ip *ipPart)
 {
@@ -80,18 +86,23 @@ string printer::printIPv6(struct ip6_hdr *ipv6Hdr)
 	stringstream ss;
 	ss << "IPv6" << endl;
 	/* 4 bits version, 8 bits TC, 20 bits flow-ID */
-	uint32_t ip6_Vr_Tc_Flow = ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_flow;
-	uint16_t version = (ip6_Vr_Tc_Flow & 0xFF);
-	ss << "\tVersion: " << hexString(ntohs(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_flow)) << endl;
-	ss << "\tVersion: " << hexString(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_flow) << endl;
-	ss << "\tVersion: " << version << endl;
-	ss << "\tTraffic Class: " << endl;
-	ss << "\tFlow Label: " << endl;
-	ss << "\tPayload Length: " << endl;
-	ss << "\tNext Header: " << endl;
-	ss << "\tHop Limit: " << endl;
-	ss << "\tSource Address: " << endl;
-	ss << "\tDestination Address: " << endl;
+	uint32_t ip6_Vr_Tc_Flow = ntohl(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_flow);
+//	uint32_t version = (ip6_Vr_Tc_Flow & IP6_VERSION);
+//	uint32_t traffCl = (ip6_Vr_Tc_Flow & IP6_TRCLASS);
+//	uint32_t flowID  = (ip6_Vr_Tc_Flow & IP6_FLOWID);
+	uint32_t version = (ip6_Vr_Tc_Flow >> 28);
+	uint32_t traffCl = ((ip6_Vr_Tc_Flow << 4) >> 28);
+	uint32_t flowID  = (ip6_Vr_Tc_Flow & 0xFFFFF);
+	uint16_t nextHdr = ntohs(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt) >> 8;
+	uint16_t hopLim = ntohs(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_hlim << 8);
+	ss << "\tVersion            : " << version << endl;
+	ss << "\tTraffic Class      : " << traffCl << endl;
+	ss << "\tFlow Label         : " << hexString(flowID) << endl;
+	ss << "\tPayload Length     : " << ntohs(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_plen) << endl;
+	ss << "\tNext Header        : " << getIPv6NextHeader(nextHdr) << " ("<<nextHdr<<")"<< endl;
+	ss << "\tHop Limit          : " << hopLim << endl;
+	ss << "\tSource Address     : " << prettyIPv6Addr(ipv6Hdr->ip6_src.__in6_u.__u6_addr8) << endl;
+	ss << "\tDestination Address: " << prettyIPv6Addr(ipv6Hdr->ip6_dst.__in6_u.__u6_addr8) << endl;
 	return ss.str();
 }
 
@@ -128,10 +139,13 @@ string printer::printTCP(struct tcphdr *tcpPart)
 	return ss.str();
 }
 
-string printer::printICMPv6()
+string printer::printICMPv6(struct icmp6_hdr *icmp6Part)
 {
 	stringstream ss;
 	ss << "ICMPv6" << endl;
+    ss << "\tType: " << ntohs(icmp6Part->icmp6_type << 8) << endl;
+    ss << "\tCode: " << ntohs(icmp6Part->icmp6_code << 8) << endl;
+    ss << "\tChecksum: " << ntohs(icmp6Part->icmp6_cksum) << endl;
 	return ss.str();
 }
 
@@ -204,77 +218,44 @@ string getUDPProtocol(u_int16_t port){
 	/*
 	*/
 	switch (ntohs(port)) {
-		case 7:
-			return "echo";
-		case 19:
-			return "chargen";
-		case 37:
-			return "time";
-		case 53:
-			return "domain";
-		case 67:
-			return "bootps (DHCP)";
-		case 68:
-			return "bootpc (DHCP)";
-		case 69:
-			return "tftp";
-		case 137:
-			return "netbios-ns";
-		case 138:
-			return "netbios-dgm";
-		case 161:
-			return "snmp";
-		case 162:
-			return "snmp-trap";
-		case 500:
-			return "isakmp";
-		case 514:
-			return "syslog";
-		case 520:
-			return "rip";
-		case 33434:
-			return "traceroute";
-		default:
-			return "Other";
+		case 7: return "echo";
+		case 19: return "chargen";
+		case 37: return "time";
+		case 53: return "domain";
+		case 67: return "bootps (DHCP)";
+		case 68: return "bootpc (DHCP)";
+		case 69: return "tftp";
+		case 137: return "netbios-ns";
+		case 138: return "netbios-dgm";
+		case 161: return "snmp";
+		case 162: return "snmp-trap";
+		case 500: return "isakmp";
+		case 514: return "syslog";
+		case 520: return "rip";
+		case 33434: return "traceroute";
+		default: return "Other";
 	}
 }
 
 string getICMPTypeName(u_int8_t type){
 	switch (type) {
-		case 0:
-			return "Echo Reply";
-		case 3:
-			return "Destination Unreachable";
-		case 4:
-			return "Source Quench";
-		case 5:
-			return "Redirect";
-		case 8:
-			return "Echo";
-		case 9:
-			return "Router Advertisement";
-		case 10:
-			return "Router Selection";
-		case 11:
-			return "Time Exceeded";
-		case 12:
-			return "Parameter Problem";
-		case 13:
-			return "Timestamp";
-		case 14:
-			return "Timestamp Reply";
-		case 15:
-			return "Information Request";
-		case 16:
-			return "Information Reply";
-		case 17:
-			return "Address Mask Request";
-		case 18:
-			return "Address Mask Reply";
-		case 30:
-			return "Traceroute";
-		default:
-			return "UNKNOWN";
+		case 0: return "Echo Reply";
+		case 3: return "Destination Unreachable";
+		case 4: return "Source Quench";
+		case 5: return "Redirect";
+		case 8: return "Echo";
+		case 9: return "Router Advertisement";
+		case 10: return "Router Selection";
+		case 11: return "Time Exceeded";
+		case 12: return "Parameter Problem";
+		case 13: return "Timestamp";
+		case 14: return "Timestamp Reply";
+		case 15: return "Information Request";
+		case 16: return "Information Reply";
+		case 17: return "Address Mask Request";
+		case 18: return "Address Mask Reply";
+		case 30: return "Traceroute";
+		default: return "UNKNOWN";
 	}
 }
 
@@ -282,61 +263,38 @@ string getICMPCodeText(u_int8_t type, u_int8_t code){
 	switch (type) {
 		case 3:
 			switch (code) {
-				case 0:
-					return "Net Unreachable";
-				case 1:
-					return "Host Unreachable";
-				case 2:
-					return "Protocol Unreachable";
-				case 3:
-					return "Port Unreachable";
-				case 4:
-					return "Fragmentation Needed & DF Set";
-				case 5:
-					return "Source Route Failed";
-				case 6:
-					return "Destination Network Unknown";
-				case 7:
-					return "Destination Host Unknown";
-				case 8:
-					return "Source Host Isolated";
-				case 9:
-					return "Network Administratively Prohibited";
-				case 10:
-					return "Host Administratively Prohibited";
-				case 11:
-					return "Network Unreachable for TOS";
-				case 12:
-					return "Host Unreachable for TOS";
-				case 13:
-					return "Communication Administratively Prohibited";
+				case 0: return "Net Unreachable";
+				case 1: return "Host Unreachable";
+				case 2: return "Protocol Unreachable";
+				case 3: return "Port Unreachable";
+				case 4: return "Fragmentation Needed & DF Set";
+				case 5: return "Source Route Failed";
+				case 6: return "Destination Network Unknown";
+				case 7: return "Destination Host Unknown";
+				case 8: return "Source Host Isolated";
+				case 9: return "Network Administratively Prohibited";
+				case 10: return "Host Administratively Prohibited";
+				case 11: return "Network Unreachable for TOS";
+				case 12: return "Host Unreachable for TOS";
+				case 13: return "Communication Administratively Prohibited";
 			}
 		case 5:
 			switch (code) {
-				case 0:
-					return "Redirect Datagram for the Network";
-				case 1:
-					return "Redirect Datagram for the Host";
-				case 2:
-					return "Redirect Datagram for the TOS & Network";
-				case 3:
-					return "Redirect Datagram for the TOS & Host";
+				case 0: return "Redirect Datagram for the Network";
+				case 1: return "Redirect Datagram for the Host";
+				case 2: return "Redirect Datagram for the TOS & Network";
+				case 3: return "Redirect Datagram for the TOS & Host";
 			}
 		case 11:
 			switch (code) {
-				case 0:
-					return "Time to Live exceeded in Transit";
-				case 1:
-					return "Fragment Reassembly Time Exceeded";
+				case 0: return "Time to Live exceeded in Transit";
+				case 1: return "Fragment Reassembly Time Exceeded";
 			}
 		case 12:
 			switch (code) {
-				case 0:
-					return "Pointer indicates the error";
-				case 1:
-					return "Missing a Required Option";
-				case 2:
-					return "Bad Length";
+				case 0: return "Pointer indicates the error";
+				case 1: return "Missing a Required Option";
+				case 2: return "Bad Length";
 			}
 	}
 	return "None";
@@ -344,46 +302,50 @@ string getICMPCodeText(u_int8_t type, u_int8_t code){
 
 string getTCPProtocol(u_int16_t port){
 	switch (port) {
-		case 7:
-			return "echo";
-		case 19:
-			return "chargen";
-		case 20:
-			return "ftp-data";
-		case 21:
-			return "ftp-control";
-		case 22:
-			return "ssh";
-		case 23:
-			return "telnet";
-		case 25:
-			return "smtp";
-		case 53:
-			return "domain";
-		case 79:
-			return "finger";
-		case 80:
-			return "http";
-		case 110:
-			return "pop3";
-		case 111:
-			return "sunrpc";
-		case 119:
-			return "ntp";
-		case 139:
-			return "etbios-ssn";
-		case 143:
-			return "imap";
-		case 179:
-			return "bgp";
-		case 389:
-			return "ldap";
-		case 443:
-			return "https (ssl)";
-		case 445:
-			return "microsoft-ds";
-		case 1080:
-			return "socks";
+		case 7: return "echo";
+		case 19: return "chargen";
+		case 20: return "ftp-data";
+		case 21: return "ftp-control";
+		case 22: return "ssh";
+		case 23: return "telnet";
+		case 25: return "smtp";
+		case 53: return "domain";
+		case 79: return "finger";
+		case 80: return "http";
+		case 110: return "pop3";
+		case 111: return "sunrpc";
+		case 119: return "ntp";
+		case 139: return "etbios-ssn";
+		case 143: return "imap";
+		case 179: return "bgp";
+		case 389: return "ldap";
+		case 443: return "https (ssl)";
+		case 445: return "microsoft-ds";
+		case 1080: return "socks";
 	}
 	return "other";
+}
+
+string prettyIPv6Addr(uint8_t* addr){
+    stringstream ss;
+    int i;
+    for(i=0;i<16;i++)
+        ss << hexString(addr[i],2,true,false) << ((i<15 && (i%2==1))?":":"");
+    return ss.str();
+}
+
+string getIPv6NextHeader(uint16_t header){
+    switch(header){
+        case 0: return "Hop-By-Hop Options";
+        case 43: return "Routing (type 0)";
+        case 44: return "Fragment";
+        case 50: return "Encapsulating Security Payload";
+        case 51: return "???";
+        case 58: return "???";
+        case 59: return "??";
+        case 60: return "???";
+        case 6: return "???";
+        case 17: return "???";
+    }
+    return "Other";
 }

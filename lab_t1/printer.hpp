@@ -12,7 +12,7 @@ class printer
 		string printIPv6(struct ip6_hdr *ipv6Hdr);
 		string printICMP(struct icmphdr *icmpPart);
 		string printTCP(struct tcphdr *tcpPart);
-		string printICMPv6();
+		string printICMPv6(struct icmp6_hdr *icmp6Part);
 		string printEth(struct ether_header *ethHdr);
 		string printStats(counter cnt);
 };

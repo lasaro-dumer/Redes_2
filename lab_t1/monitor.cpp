@@ -36,6 +36,7 @@
 #include <arpa/inet.h> //funcoes para manipulacao de enderecos IP
 #include <netinet/in_systm.h> //tipos de dados
 #include <netinet/ip_icmp.h> //header ICMP
+#include <netinet/icmp6.h> //header ICMPv6
 #include <netinet/tcp.h> //TCP header
 #include <netinet/udp.h> //UDP header
 
@@ -182,9 +183,10 @@ int main(int argc,char *argv[])
 				cnt.IPv6++;
 				struct ip6_hdr *ipv6Hdr = (struct ip6_hdr *) &buff1[14];
 				if(canPrint("ipv6")) showOutput(true, packPrinter.printIPv6(ipv6Hdr));
-				uint8_t nxtHdr = ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+				uint16_t nxtHdr = ntohs(ipv6Hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt) >> 8;
 				if(nxtHdr == IPPROTO_ICMPV6){
-					//if(canPrint("icmpv6")) showOutput(true, packPrinter.printICMPv6( icmp6Hdr )); <<<<<<!!!!!!
+                    struct icmp6_hdr *icmp6Part = (struct icmp6_hdr *) &buff1[14+sizeof(struct ip6_hdr)];
+                    if(canPrint("icmpv6")) showOutput(true, packPrinter.printICMPv6(icmp6Part));
 					cnt.ICMPv6++;
 				}
 				//printf("Ethernet type hex:%x dec:%d is an IPv6 packet\n",ntohs(etHdr->ether_type),ntohs(etHdr->ether_type));
