@@ -36,6 +36,7 @@ string getICMPCodeText(u_int8_t type, u_int8_t code);
 string getTCPProtocol(u_int16_t port);
 string prettyIPv6Addr(uint8_t* addr);
 string getIPv6NextHeader(uint16_t header);
+string getARPCommand(uint16_t code);
 
 string printer::printIPv4(struct ip *ipPart)
 {
@@ -74,10 +75,32 @@ string printer::printUDP(struct udphdr *udpPart)
 	return ss.str();
 }
 
-string printer::printARP(struct arphdr *arpPart)
+// struct arpData {
+// 	unsigned char __ar_sha[ETH_ALEN];	/* Sender hardware address.  */
+// 	unsigned int __ar_sip;		/* Sender IP address.  */
+// 	unsigned char __ar_tha[ETH_ALEN];	/* Target hardware address.  */
+// 	unsigned int __ar_tip;		/* Target IP address.*/
+// };
+
+string printer::printARP(struct arphdr *arpPart, unsigned char* buffer)
 {
 	stringstream ss;
 	ss << "ARP" << endl;
+	string protocolFormat = (ntohs(arpPart->ar_pro) == ETH_P_IP)?"IPv4":"Other";
+	ss << "\tFormat of hardware address.	: " << ntohs(arpPart->ar_hrd) << endl;
+	ss << "\tFormat of protocol address.	: " << protocolFormat << " " <<hexString(ntohs(arpPart->ar_pro)) << endl;
+	ss << "\tLength of hardware address.	: " << ntohs(arpPart->ar_hln << 8) << endl;
+	ss << "\tLength of protocol address.	: " << ntohs(arpPart->ar_pln << 8) << endl;
+	uint16_t code = ntohs(arpPart->ar_op);
+	string arpcode = getARPCommand(code);
+	ss << "\tARP opcode (command).		: " << arpcode << " ("<<code<<")" << endl;
+	// if(ntohs(arpPart->ar_pro) == ETH_P_IP){
+	// 	struct arpData* data = (struct arpData*)buffer;
+	// 	unsigned int ip = data->__ar_sip;
+	// 	ss << inet_ntoa(*(struct in_addr *)&ip) << endl;
+	// 	ip = data->__ar_tip;
+	// 	ss << inet_ntoa(*(struct in_addr *)&ip) << endl;
+	// }
 	return ss.str();
 }
 
@@ -143,9 +166,9 @@ string printer::printICMPv6(struct icmp6_hdr *icmp6Part)
 {
 	stringstream ss;
 	ss << "ICMPv6" << endl;
-    ss << "\tType: " << ntohs(icmp6Part->icmp6_type << 8) << endl;
-    ss << "\tCode: " << ntohs(icmp6Part->icmp6_code << 8) << endl;
-    ss << "\tChecksum: " << ntohs(icmp6Part->icmp6_cksum) << endl;
+	ss << "\tType: " << ntohs(icmp6Part->icmp6_type << 8) << endl;
+	ss << "\tCode: " << ntohs(icmp6Part->icmp6_code << 8) << endl;
+	ss << "\tChecksum: " << ntohs(icmp6Part->icmp6_cksum) << endl;
 	return ss.str();
 }
 
@@ -327,25 +350,38 @@ string getTCPProtocol(u_int16_t port){
 }
 
 string prettyIPv6Addr(uint8_t* addr){
-    stringstream ss;
-    int i;
-    for(i=0;i<16;i++)
-        ss << hexString(addr[i],2,true,false) << ((i<15 && (i%2==1))?":":"");
-    return ss.str();
+	stringstream ss;
+	int i;
+	for(i=0;i<16;i++)
+		ss << hexString(addr[i],2,true,false) << ((i<15 && (i%2==1))?":":"");
+	return ss.str();
 }
 
 string getIPv6NextHeader(uint16_t header){
-    switch(header){
-        case 0: return "Hop-By-Hop Options";
-        case 43: return "Routing (type 0)";
-        case 44: return "Fragment";
-        case 50: return "Encapsulating Security Payload";
-        case 51: return "???";
-        case 58: return "???";
-        case 59: return "??";
-        case 60: return "???";
-        case 6: return "???";
-        case 17: return "???";
-    }
-    return "Other";
+	switch(header){
+		case 0: return "Hop-By-Hop Options";
+		case 43: return "Routing (type 0)";
+		case 44: return "Fragment";
+		case 50: return "Encapsulating Security Payload";
+		case 51: return "Authentication";
+		case 58: return "ICMPv6";
+		case 59: return "No next header";
+		case 60: return "Destination Options";
+		case 6: return "TCP";
+		case 17: return "UDP";
+	}
+	return "Other";
+}
+
+string getARPCommand(uint16_t code){
+	switch (code) {
+		case 1: return "REQUEST";
+		case 2: return "REPLY";
+		case 3: return "RREQUEST";
+		case 4: return "RREPLY";
+		case 8: return "InREQUEST";
+		case 9: return "InREPLY";
+		case 10: return "NAK";
+	}
+	return "Unknow";
 }

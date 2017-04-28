@@ -8,4 +8,6 @@ default:
 debug: CFLAGS += -DDEBUG
 debug: default
 curses: CFLAGS += -DPCUR -lncurses
-curses: debug
+curses: default
+clean:
+	rm -rf *.o

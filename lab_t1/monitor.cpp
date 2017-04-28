@@ -13,6 +13,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <curses.h>
 #include <signal.h>
 
@@ -60,6 +61,7 @@ using namespace std;
 unsigned char buff1[BUFFSIZE]; // buffer de recepcao
 bool continueExec;
 string printParam;
+ofstream myfile;
 enum etherpack_type{ IPv4=1, ARP=2, REVARP=3, IPv6=4 };
 
 enum etherpack_type getPackageType(u_int16_t tp);
@@ -132,6 +134,7 @@ int main(int argc,char *argv[])
 		init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
 		init_pair(7, COLOR_WHITE,   COLOR_BLACK);
 	}
+	myfile.open ("sniffed_dump.txt");
 	#endif
 	while (continueExec) {
 		ssize_t pktSize = recv(sockd,(char *) &buff1, sizeof(buff1), 0x0);
@@ -196,16 +199,16 @@ int main(int argc,char *argv[])
 				//printf("Ethernet type hex:%x dec:%d is an ARP packet\n",ntohs(etHdr->ether_type),ntohs(etHdr->ether_type));
 				cnt.ARP++;
 				struct arphdr *arpPart = (struct arphdr *) &buff1[14];
-				if(canPrint("arp")) showOutput(true, packPrinter.printARP(arpPart));
+				if(canPrint("arp")) showOutput(true, packPrinter.printARP(arpPart, &buff1[22]));
 				break;
 			}
 			default:
 				//printf("Unknow package type hex:%x\tdec:%d\n", ntohs(etHdr->ether_type), ntohs(etHdr->ether_type));
 				break;
 		}
-		#ifdef DEBUG
+		#ifdef PCUR
 		string s = packPrinter.printStats(cnt);
-		#ifndef PCUR
+		#ifdef DEBUG
 		system("clear");
 		#endif
 		showOutput(false, s);
@@ -213,9 +216,11 @@ int main(int argc,char *argv[])
 	}
 
 	showOutput(false, packPrinter.printStats(cnt));
+	showOutput(true, packPrinter.printStats(cnt));
 	#ifdef PCUR
 	endwin();
 	/* do your non-curses wrapup here */
+	myfile.close();
 	#endif
 	exit(0);
 }
@@ -241,6 +246,8 @@ void showOutput(bool dump, string text){
 	#else
 	if(dump){
 		//print to file....
+		if (myfile.is_open())
+			myfile << text;
 	}else{
 		move(0,0);
 		attrset(COLOR_PAIR(2));
