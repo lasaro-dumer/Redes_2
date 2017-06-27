@@ -4,6 +4,7 @@
 
 class Game
 {
+public:
   Room[][] rooms;
   Character[] playerCharacters;
   Character[] npCharacters;
