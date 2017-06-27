@@ -1,6 +1,9 @@
 class Element
 {
 public:
-  Element(char[] description);
+  Element(char[] description)
+  {
+    this.description = description;
+  }
   char[] description;
 }

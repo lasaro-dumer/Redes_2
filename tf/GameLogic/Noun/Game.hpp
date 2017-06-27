@@ -8,7 +8,8 @@ public:
   Room[][] rooms;
   Character[] playerCharacters;
   Character[] npCharacters;
-  Game(Room[][] rooms, Character[] npCharacters);
+  Item[] itemsBase;
+  Game(Room[][] rooms, Character[] npCharacters, Item[] itemsBase);
   bool includePlayer(Character player);
   bool removePlayer(Character player);
   string asciiMap();

@@ -11,14 +11,18 @@ struct door {
   bool open;
   Key relatedKey;
   int direction;
+  Room datRoom;
 };
 
 class Room : public Element
 {
 public:
-  Room(char[] description, Inventory content, door[] doors):base(description);
+  Room(char[] description, Inventory content, door[] doors):base(description)
+  {
+    this.content = content;
+    this.doors = doors;
+  }
   Inventory content;
   door[] doors;
-  bool openDoor(int direction, Key relatedKey);
-  bool openDoor(int direction);
+  bool openDoor(int direction, Inventory opener);
 }

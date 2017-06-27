@@ -1,8 +1,12 @@
 #include "Element.hpp"
+#include <string>
 
 class Item : public Element
 {
 public:
-  char[] name;
-  Item(char[] name, char[] description):base(description);
+  string name;
+  Item(string name, string description):base(description)
+  {
+    this.name = name;
+  }
 }
