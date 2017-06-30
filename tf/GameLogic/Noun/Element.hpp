@@ -1,9 +1,16 @@
+#ifndef elementH
+#define elementH
+#include <string>
+
+using namespace std;
+
 class Element
 {
 public:
-  Element(char[] description)
-  {
-    this.description = description;
-  }
-  char[] description;
-}
+	string description;
+	Element(string description)
+	{
+		this->description = description;
+	}
+};
+#endif

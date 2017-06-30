@@ -1,5 +1,7 @@
+#ifndef dmasterH
+#define dmasterH
 #include <string>
-#include "Noun/Game.hpp"
+#include "Game.hpp"
 #include "Verb/Examine.hpp"
 #include "Verb/Move.hpp"
 #include "Verb/Pick.hpp"
@@ -8,8 +10,16 @@
 #include "Verb/Talk.hpp"
 #include "Verb/Whisper.hpp"
 
-class DungeonMaster : public Game
+class DungeonMaster
 {
+private:
+	Game* game;
 public:
-  string processMessage(string message);
-}
+	DungeonMaster(){
+		this->game = new Game();
+	}
+	Game* gameRef(){ return this->game; }
+	string processMessage(string message);
+};
+
+#endif

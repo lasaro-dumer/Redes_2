@@ -1,12 +1,18 @@
-#include "Element.hpp"
+#ifndef itemH
+#define itemH
 #include <string>
+#include "Element.hpp"
+
+using namespace std;
 
 class Item : public Element
 {
+
 public:
-  string name;
-  Item(string name, string description):base(description)
-  {
-    this.name = name;
-  }
-}
+	string name;
+	Item(string name, string description):Element(description)
+	{
+		this->name = name;
+	}
+};
+#endif
