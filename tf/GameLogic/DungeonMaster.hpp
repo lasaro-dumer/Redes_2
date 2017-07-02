@@ -9,6 +9,8 @@
 #include "Verb/Use.hpp"
 #include "Verb/Talk.hpp"
 #include "Verb/Whisper.hpp"
+#include "Noun/Player.hpp"
+#include "response.hpp"
 
 class DungeonMaster
 {
@@ -19,7 +21,7 @@ public:
 		this->game = new Game();
 	}
 	Game* gameRef(){ return this->game; }
-	string processMessage(string message);
+	dungeonResponse* processMessage(Player* sender, string message);
 };
 
 #endif

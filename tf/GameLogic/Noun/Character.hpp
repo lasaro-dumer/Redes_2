@@ -9,15 +9,15 @@ using namespace std;
 class Character
 {
 public:
-	string owner;
+	string name;
 	// Inventory inventory;
 	// Room location;
-	Character(string owner){
-		this->owner;
+	Character(string name){
+		this->name;
 	}
-	// Character(string owner, Inventory inventory, Room location)
+	// Character(string name, Inventory inventory, Room location)
 	// {
-	// 	this.owner = owner;
+	// 	this.name = name;
 	// 	this.inventory = inventory;
 	// 	this.location = location;
 	// }

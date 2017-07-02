@@ -14,6 +14,7 @@
 #include <map>
 #include <stdbool.h>
 
+#include "util.hpp"
 #include "screen.hpp"
 #include "GameLogic/Game.hpp"
 #include "GameLogic/DungeonMaster.hpp"
@@ -79,21 +80,13 @@ int main(int argc , char *argv[])
 
 		Player* player = new Player(players.size()+1, "server");
 		players[player->ID] = player;
-		//Reply to the client
-		stringstream ss;
-		ss << "Hello Player " << player->ID << ", wait your turn to play\n";
-		message = ss.str();
-		write(new_socket , message.data(), message.size());
 		if(currentPlayer == 0)
 			currentPlayer = player->ID;
 
 		pthread_t sniffer_thread;
 		new_sock = (int*)malloc(1);
 		*new_sock = new_socket;
-		// newPlayer.sock = new_sock;
 		player->socket = new_sock;
-		// if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) &pargs) < 0)
-		// if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) newPlayer.number) < 0)
 		if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) player->ID) < 0)
 		{
 			showOutput("could not create thread");
@@ -131,34 +124,53 @@ static void finish(int sig)
 // void *connection_handler(void *playerArgs)
 void *connection_handler(void *playerNumber)
 {
-	// void *socket_desc
+	Player* player = players[(long int)playerNumber];
 	//Get the socket descriptor
-	void* socket_desc = (void*)players[(long int)playerNumber]->socket;
-	int sock = *(int*)socket_desc;
-	// struct player_t pargs = *(struct player_t*)playerArgs;
-	// int sock = *pargs.sock;playerNumber
+	int sock = *(int*)player->socket;
 	int read_size;
-	char client_message[2000];
-	// string message;
-	// //Send some messages to the client
-	// message = "Greetings! I am your connection handler\n";
-	// write(sock , message.data() , message.size());
-
-	// message = "Now type something and i shall repeat what you type \n";
-	// write(sock , message , strlen(message));
+	char client_message[SIZE_LIMIT];
+	stringstream ss;
+	ss << "Hello Player " << player->ID << ". What is your name?\n";
+	string askName = ss.str();
+	write(sock , askName.data(), askName.size());
 
 	//Receive a message from client
-	while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
+	while( (read_size = recv(sock , client_message , SIZE_LIMIT , 0)) > 0 )
 	{
-		stringstream ss;
-		ss << "received " << client_message <<" from "<< sock << endl;
+		ss.clear();
+		ss << "received " << client_message <<" from "<< player->ID << endl;
 		showOutput(ss.str());
-		//TODO: process here
-		//Send the message back to client
-		string result = dmaster.processMessage(client_message);
-		write(sock , result.data(), result.size());
-		// write(sock , client_message , strlen(client_message));
-		memset(client_message, 0, sizeof(client_message));
+		dungeonResponse* dr;
+		string server_message;
+		if(player->name.size() == 0){
+			player->name = client_message;
+			stringstream ms;
+			dr = new dungeonResponse();
+			dr->action = WAIT;
+			ms << "Thanks " << player->name << ", now wait your turn." << endl;
+			dr->message = ms.str();
+			dr->target = player;
+		}
+		else if(currentPlayer == player->ID){
+			//TODO: process here
+			dr = dmaster.processMessage(player, client_message);
+			if(dr->endTurn){
+				currentPlayer++;
+				if(currentPlayer>players.size())
+					currentPlayer = 1;
+				if(currentPlayer == player->ID && dr->action == WAIT)
+					dr->action = PLAY;
+			}
+		}
+		else{
+			dr = new dungeonResponse();
+			dr->action = WAIT;
+			dr->message = "Not your turn, please wait.";
+			dr->target = player;
+		}
+		server_message = dr->toString();
+		write(*(dr->target->socket) , server_message.data(), server_message.size());
+		memset(client_message, 0, sizeof(client_message));//clears the buffer
 		if(!continueExec)
 			break;
 	}
@@ -166,6 +178,7 @@ void *connection_handler(void *playerNumber)
 	if(continueExec){
 		if(read_size == 0)
 		{
+			//TODO:remove player
 			showOutput("Client disconnected");
 			fflush(stdout);
 		}
@@ -176,7 +189,7 @@ void *connection_handler(void *playerNumber)
 	}
 
 	//Free the socket pointer
-	free(socket_desc);
+	free((void*)player->socket);
 	// free((void *)*pargs.sock);
 
 	return 0;

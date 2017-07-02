@@ -9,12 +9,12 @@ public:
 	long int ID;
 	bool alive;
 	int *socket;
-	// Player(string owner, Inventory inventory, Room location):base(owner, inventory, location)
-	Player(int playerID, string owner):Character(owner)
+	// Player(string name, Inventory inventory, Room location):Character(name, inventory, location)
+	Player(int playerID, string name):Character(name)
 	{
 		this->ID = playerID;
 		this->alive = true;
 	}
-	void *connectionHandler(void *playerNumber);
+	bool isReady();
 };
 #endif

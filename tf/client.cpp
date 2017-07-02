@@ -9,11 +9,11 @@
 #include <stdbool.h>
 #include <signal.h>
 
+#include "util.hpp"
 #include "screen.hpp"
 
 #define SERVER "127.0.0.1"
 #define SERVER_PORT 8888
-#define SIZE_LIMIT 2000
 
 using namespace std;
 
@@ -54,7 +54,6 @@ int main(int argc , char *argv[])
 	//Receive a reply from the server
 	while( (read_size = recv(socket_desc , server_reply, SIZE_LIMIT , 0)) > 0 ){
 		showOutput(server_reply, true);
-		memset(server_reply, 0, sizeof(server_reply));
 		//Send some data
 		string line;
 		#ifdef PCUR
@@ -68,6 +67,7 @@ int main(int argc , char *argv[])
 			finish(0);
 			return 1;
 		}
+		memset(server_reply, 0, sizeof(server_reply));
 	}
 
 	if(read_size == 0){
