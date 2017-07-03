@@ -13,7 +13,7 @@ Item* Inventory::takeItem(string name, vector<Item*> itemsBase)
 	return nullptr;
 }
 
-Item* Inventory::takeItem(Item *item)
+Item* Inventory::takeItem(Item* item)
 {
 	if(contents.at(item) > 0)
 	{
@@ -37,7 +37,7 @@ Item* Inventory::putItem(string name, vector<Item*> itemsBase)
 	return nullptr;
 }
 
-Item* Inventory::putItem(Item *item)
+Item* Inventory::putItem(Item* item)
 {
 	contents.at(item)++;
 	return item;

@@ -25,7 +25,7 @@ public:
 	vector<Door*> doors;
 	Room(string description, Inventory *content, vector<Door*> doors):Element(description)
 	{
-		// this->content = content;
+		this->content = content;
 		this->doors = doors;
 	}
 	bool openDoor(int direction, Inventory *opener);

@@ -10,7 +10,7 @@ bool Game::includePlayer(Player* player){
 bool Game::removePlayer(int playerID){
 	for(list<Player*>::iterator it=this->players.begin(); it != this->players.end(); ++it)
 	{
-		if(it->ID == playerID)
+		if((*it)->ID == playerID)
 		{
 			this->players.remove(*it);
 			return true;
