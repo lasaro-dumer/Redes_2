@@ -23,7 +23,7 @@ dungeonResponse* DungeonMaster::processMessage(Player* sender, string message)
 	//TODO: each VERB should receive a dungeonResponse pointer and then set the ACTION, TARGET, MESSAGE and ECHOS
 	//ADVICE: add a player as target or create an echo for it only if it isReady()
 	if(tokens.front() == "examine" && tokens.size()>1){
-		dr->message = Examine(tokens.at(1), this->game);
+		dr = Examine(sender, tokens.at(1), this->game);
 	}
 	else if(tokens.front() == "move" && tokens.size()>2){
 		dr->message = Move(tokens.at(1), tokens.at(2), this->game);

@@ -12,5 +12,9 @@ public:
 	{
 		this->description = description;
 	}
+	string toString()
+	{
+		return this->description;
+	}
 };
 #endif

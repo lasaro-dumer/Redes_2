@@ -29,5 +29,6 @@ public:
 		this->doors = doors;
 	}
 	bool openDoor(int direction, Inventory *opener);
+	string toString();
 };
 #endif

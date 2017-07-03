@@ -2,9 +2,11 @@
 #define examineH
 #include "../Noun/Element.hpp"
 #include "../Game.hpp"
+#include "../response.hpp"
 #include <string>
+#include <list>
 
-string Examine(string element, Game* game);
-string Examine(Element element, Game* game);
+dungeonResponse* Examine(Player* sender, string element, Game* game);
+dungeonResponse* Examine(Player* sender, Game* game);
 
 #endif

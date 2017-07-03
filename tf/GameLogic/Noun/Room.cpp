@@ -17,3 +17,36 @@ bool Room::openDoor(int direction, Inventory *opener)
 	}
 	return false;
 }
+
+string Room::toString()
+{
+	string message = description + "Ela contem: ";
+	for(map<Item*, int>::iterator it=this->content->contents.begin(); it != this->content->contents.end(); ++it)
+	{
+		message += to_string(it->second) + it->first->name + "; ";
+	}
+	message.erase(message.end());
+	message += ". Existem salas ao: ";
+	for (vector<Door*>::iterator it=this->doors.begin(); it!=this->doors.end(); ++it)
+	{
+		switch((*it)->direction)
+		{
+			case 0:
+				message += "Oeste, ";
+				break;
+			case 1:
+				message += "Norte, ";
+				break;
+			case 2:
+				message += "Leste, ";
+				break;
+			case 3:
+				message += "Sul, ";
+				break;
+		}
+	}
+	message.erase(message.end());
+	message.erase(message.end());
+	message += ".";
+	return message;
+}
