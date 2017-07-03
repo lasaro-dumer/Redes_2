@@ -17,7 +17,7 @@ dungeonResponse* DungeonMaster::processMessage(Player* sender, string message)
 
 	// std::transform(message.begin(), message.front().end(), message.front().begin(), ::tolower);
 	std::transform(message.begin(), message.end(), message.begin(), ::tolower);
-	//TODO:choose a more specific delimiter, or even use space, so the player cam 'just write'
+	//TODO:choose a more specific delimiter, or even use space, so the player can 'just write'
 	vector<string> tokens = split(message, ';');
 
 	//TODO: each VERB should receive a dungeonResponse pointer and then set the ACTION, TARGET, MESSAGE and ECHOS

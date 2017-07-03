@@ -2,19 +2,26 @@
 #define gameH
 #include "Noun/Character.hpp"
 #include "Noun/Player.hpp"
-// #include "Noun/Room.hpp"
-// #include "Noun/Item.hpp"
+#include "Noun/Room.hpp"
+#include "Noun/Item.hpp"
 #include <string>
 #include <list>
+#include <vector>
+
+using namespace std;
 
 class Game
 {
 public:
-	// Room[][] rooms;
+	vector< vector <Room*> > rooms;
 	list<Player*> players;
-	// Character[] npCharacters;
-	// Item[] itemsBase;
-	// Game(Room[][] rooms, Character[] npCharacters, Item[] itemsBase);
+	vector<Character*> npCharacters;
+	vector<Item*> itemsBase;
+	Game(vector< vector<Room*> > rooms, vector<Character*> npCharacters, vector<Item*> itemsBase){
+		this->rooms = rooms;
+		this->npCharacters = npCharacters;
+		this->itemsBase = itemsBase;
+	}
 	Game(){
 
 	}

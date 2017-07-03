@@ -10,7 +10,7 @@ class Item : public Element
 
 public:
 	string name;
-	Item(string name, string description):Element(description)
+	Item(string name, string description) : Element(description)
 	{
 		this->name = name;
 	}

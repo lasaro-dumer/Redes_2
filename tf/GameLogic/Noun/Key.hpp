@@ -8,7 +8,7 @@ using namespace std;
 class Key : public Item
 {
 public:
-	Key(string name, string description):Item(name, description){
+	Key(string name, string description) : Item(name, description){
 
 	}
 };
