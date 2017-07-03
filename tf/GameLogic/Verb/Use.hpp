@@ -4,9 +4,9 @@
 #include "../Noun/Inventory.hpp"
 #include "../Noun/Item.hpp"
 #include "../Game.hpp"
+#include "../response.hpp"
 #include <string>
 
-string Use(string character, string item, Game* game);
-string Use(Character character, Item item, Game* game);
+dungeonResponse* Use(Player* sender, string item, Game* game);
 
 #endif

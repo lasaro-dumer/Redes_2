@@ -30,14 +30,14 @@ dungeonResponse* DungeonMaster::processMessage(Player* sender, string message)
 		dr->action = WAIT;
 		dr->endTurn = true;
 	}
-	else if(tokens.front() == "pick" && tokens.size()>3){
-		dr->message = Pick(tokens.at(1), tokens.at(2), tokens.at(3), this->game);
+	else if(tokens.front() == "pick" && tokens.size()>1){
+		dr = Pick(sender, tokens.at(1), this->game);
 	}
 	else if(tokens.front() == "drop" && tokens.size()>1){
 		dr = Drop(sender, tokens.at(1), this->game);
 	}
-	else if(tokens.front() == "use" && tokens.size()>2){
-		dr->message = Use(tokens.at(1), tokens.at(2), this->game);
+	else if(tokens.front() == "use" && tokens.size()>1){
+		dr = Use(sender, tokens.at(1), this->game);
 	}
 	else if(tokens.front() == "talk" && tokens.size()>2){
 		dr->message = Talk(tokens.at(1), tokens.at(2), this->game);
