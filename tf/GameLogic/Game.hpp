@@ -22,9 +22,7 @@ public:
 		this->npCharacters = npCharacters;
 		this->itemsBase = itemsBase;
 	}
-	Game(){
-
-	}
+	Game();
 	bool includePlayer(Player* player);
 	bool removePlayer(int playerID);
 	string asciiMap();
