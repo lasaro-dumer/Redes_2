@@ -9,6 +9,8 @@
 #include "Verb/Use.hpp"
 #include "Verb/Talk.hpp"
 #include "Verb/Whisper.hpp"
+#include "Verb/Help.hpp"
+#include "Verb/CheckInventory.hpp"
 #include "Noun/Player.hpp"
 #include "response.hpp"
 

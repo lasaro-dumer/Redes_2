@@ -7,6 +7,7 @@
 #include "DungeonMaster.hpp"
 #include "../util.hpp"
 #include "response.hpp"
+#include "Verb/CheckInventory.hpp"
 
 dungeonResponse* DungeonMaster::processMessage(Player* sender, string message)
 {
@@ -42,6 +43,12 @@ dungeonResponse* DungeonMaster::processMessage(Player* sender, string message)
 	}
 	else if(tokens.front() == "cochichar" && tokens.size()>3){
 		dr = Whisper(sender, tokens.back(), message.substr(4, message.size()-tokens.back().size()+1), this->game);
+	}
+	else if(tokens.front() == "ajuda"){
+		dr = Help(sender);
+	}
+	else if(tokens.front() == "inventorio"){
+		dr = CheckInventory(sender);
 	}
 	else{
 		dr->message = "Comando invalido";

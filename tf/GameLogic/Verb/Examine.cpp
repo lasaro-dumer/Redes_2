@@ -50,7 +50,15 @@ dungeonResponse* Examine(Player* sender, Game* game)
 	resultMessage->source = sender;
 	resultMessage->target = sender;
 
-	for(list<Player*>::iterator it=otherPlayers.begin(); it != game->players.end(); ++it)
+	for(list<Player*>::iterator it=otherPlayers.begin(); it != otherPlayers.end(); ++it)
+	{
+		if((*it)->location == resultR)
+		{
+			resultMessage->message += " " + (*it)->name + " tambem esta aqui.";
+		}
+	}
+
+	for(vector<Character*>::iterator it=game->npCharacters.begin(); it != game->npCharacters.end(); ++it)
 	{
 		if((*it)->location == resultR)
 		{
