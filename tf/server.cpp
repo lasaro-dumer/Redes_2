@@ -16,6 +16,7 @@
 
 #include "util.hpp"
 #include "screen.hpp"
+#include "common.hpp"
 #include "GameLogic/Game.hpp"
 #include "GameLogic/DungeonMaster.hpp"
 #include "GameLogic/Noun/Player.hpp"
@@ -24,10 +25,7 @@
 
 using namespace std;
 
-bool continueExec = true;
-
 void *connection_handler(void *);
-static void finish(int sig);
 int socket_desc, currentPlayer = 0;
 
 map<long int, Player*> players;
@@ -113,11 +111,6 @@ int main(int argc , char *argv[])
 	return 0;
 }
 
-static void finish(int sig)
-{
-	continueExec = false;
-	close(socket_desc);
-}
 /*
  * This will handle connection for each client
  * */

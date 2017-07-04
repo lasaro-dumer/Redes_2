@@ -10,6 +10,7 @@
 #include <netinet/ip.h> //definicao de protocolos
 #include <netinet/udp.h> //definicao de protocolos
 #include <net/if.h>
+#include <iostream>
 #include "common.hpp"
 #include "in_cksum.hpp"
 
@@ -21,17 +22,16 @@ instance_info createListenner(char* interface, uint16_t port){
 	instance_info iInfo;
 	int on;
 	struct ifreq ifr;
-	printf("port %d\n", port);
 	if((iInfo.listen_socket = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
-		printf("Error creating socket.\n");
+		showOutput("Error creating socket.\n");
 		if(errno==EPERM)
-			printf("Permition denied.\n");
+			showOutput("Permition denied.\n");
 		exit(1);
 	}
 
 	strcpy(ifr.ifr_name, interface);
 	if(ioctl(iInfo.listen_socket, SIOCGIFINDEX, &ifr) < 0)
-		printf("error in ioctl!");
+		showOutput("error in ioctl!\n");
 	ioctl(iInfo.listen_socket, SIOCGIFFLAGS, &ifr);
 	ifr.ifr_flags |= IFF_PROMISC;
 	ioctl(iInfo.listen_socket, SIOCSIFFLAGS, &ifr);
@@ -47,14 +47,16 @@ void startListenner(instance_info iInfo){
 	pthread_t listennerThread;
 	if( pthread_create( &listennerThread , NULL ,  listennerHandler , (void*)&iInfo) < 0)
 	{
-		printf("could not create thread");
+		showOutput("could not create thread\n");
 		exit(1);
 	}
 }
 
 void* listennerHandler(void* iInfo){
 	instance_info* lstInfo = (struct instance_info*)iInfo;
-	printf("Listenner Handler for '%s' at %s:%d\n", lstInfo->interface, inet_ntoa(lstInfo->address), lstInfo->port);
+	std::stringstream ss;
+	ss << "Listenner Handler for '"<<lstInfo->interface<<"' at "<<inet_ntoa(lstInfo->address)<<":"<<lstInfo->port<<"\n";
+	showOutput(ss.str());
 
 	unsigned char buffer[BUFFSIZE];
 	while (continueExec) {
@@ -67,14 +69,14 @@ void* listennerHandler(void* iInfo){
 					int p = 14 + (ipPart->ip_hl*4);
 					struct udphdr *udpPart = (struct udphdr *)&buffer[p];
 					if(ntohs(udpPart->dest) == lstInfo->port){
-						showOutput(packPrinter.printUDP(udpPart));
+						//showOutput(packPrinter.printUDP(udpPart));
 						p += sizeof(udpPart);
 						int dataLength = (ntohs(udpPart->len)-8);
 						int maxP = p+dataLength;
 						stringstream convertStream;
 						for (int i = p; i < maxP; i++)
 							convertStream << (unsigned char)buffer[i];
-						printf("%s\n", convertStream.str().c_str());
+						std::cout << convertStream.str() <<"\n";
 					}
 				}
 			}
@@ -90,11 +92,11 @@ void createSender(unsigned char* buffer, instance_info* iInfo) {
 	iInfo->sender_socket = socket(PF_INET, SOCK_RAW, IPPROTO_UDP);
 	if(iInfo->sender_socket < 0)
 	{
-		perror("socket() error");
+		showOutput("socket() error\n");
 		exit(-1);
 	}
 	else
-		printf("socket() - Using SOCK_RAW socket and UDP protocol is OK.\n");
+		showOutput("socket() - Using SOCK_RAW socket and UDP protocol is OK.\n");
 
 	iInfo->sin.sin_family = AF_INET;
 	iInfo->sin.sin_port = htons(iInfo->port);
@@ -120,11 +122,11 @@ void createSender(unsigned char* buffer, instance_info* iInfo) {
 	const int *val = &one;
 	if(setsockopt(iInfo->sender_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) < 0)
 	{
-		perror("setsockopt() error");
+		showOutput("setsockopt() error\n");
 		exit(-1);
 	}
 	else
-		printf("setsockopt() is OK.\n");
+		showOutput("setsockopt() is OK.\n");
 	iInfo->datagramStart = sizeof(struct ip) + sizeof(struct udphdr);
 	iInfo->iphdrBase = iphdr;
 	iInfo->udpBase = udp;
@@ -152,15 +154,7 @@ void sendDataTo(unsigned char* buffer, instance_info* iInfo, string targeIP, str
 	if(sendto(iInfo->sender_socket, buffer, iInfo->iphdrBase->ip_len, 0, (struct sockaddr *)&iInfo->sin, sizeof(iInfo->sin)) < 0)
 	// Verify
 	{
-		perror("sendto() error");
+		showOutput("sendto() error\n");
 		exit(-1);
 	}
-	else
-	{
-		printf("sendto() is OK.\n");
-	}
-}
-
-void showOutput(string text){
-	printf("%s", text.c_str());
 }

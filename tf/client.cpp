@@ -11,13 +11,13 @@
 
 #include "util.hpp"
 #include "screen.hpp"
+#include "common.hpp"
 
 #define SERVER "127.0.0.1"
 #define SERVER_PORT 8888
 
 using namespace std;
 
-static void finish(int sig);
 int socket_desc;
 int main(int argc , char *argv[])
 {
@@ -77,12 +77,4 @@ int main(int argc , char *argv[])
 	finish(0);
 
 	return 0;
-}
-
-static void finish(int sig)
-{
-	#ifdef PCUR
-	endwin();
-	#endif
-	close(socket_desc);
 }

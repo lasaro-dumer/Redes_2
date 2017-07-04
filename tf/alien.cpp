@@ -27,10 +27,10 @@ unsigned char buffer[BUFFSIZE]; // buffer de recepcao
 
 int main(int argc,char *argv[])
 {
-	printf("argc: %d\n",argc);
+	showOutput("argc: argc\n");
 	if(argc < 3){
-		printf("- Invalid parameters!!!\n");
-		printf("- Usage %s <Network Interface> <UDP Port>\n", argv[0]);
+		showOutput("- Invalid parameters!!!\n");
+		showOutput(string("- Usage ")+string(argv[0])+string(" <Network Interface> <UDP Port>\n"));
 		exit(1);
 	}
 	continueExec = true;
@@ -38,10 +38,10 @@ int main(int argc,char *argv[])
 
 	#ifndef FLG_SERVER
 	currentState = WAIT;
-	std::cout << "Enter the server IP" << '\n';
+	showOutput("Enter the server IP\n");
 	string serverIP;
 	cin >> serverIP;
-	std::cout << "Enter the server UDP Port" << '\n';
+	showOutput("Enter the server UDP Port\n");
 	string serverPort;
 	cin >> serverPort;
 	#else
@@ -60,7 +60,7 @@ int main(int argc,char *argv[])
 		send
 		*/
 		#ifndef FLG_SERVER
-		std::cout << "Enter a message" << '\n';
+		showOutput("Enter a message\n");
 		string message;
 		cin >> message;
 		sendDataTo(buffer, &iInfo, serverIP, serverPort, message);

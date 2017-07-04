@@ -15,6 +15,7 @@
 // #include <sys/socket.h>
 // #include <sys/ioctl.h>
 #include "printer.hpp"
+#include "screen.hpp"
 #include "GameLogic/response.hpp"
 
 #define BUFFSIZE 1518
@@ -40,7 +41,6 @@ void createSender(unsigned char* buffer, instance_info* iInfo);
 void *listennerHandler(void *iInfo);
 void startListenner(instance_info iInfo);
 void sendDataTo(unsigned char* buffer, instance_info* iInfo, string targeIP, string targePort, string data);
-void showOutput(string text);
 static void finish(int sig)
 {
 	continueExec = false;
