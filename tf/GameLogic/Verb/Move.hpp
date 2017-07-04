@@ -6,9 +6,9 @@
 #include "../Noun/Item.hpp"
 #include "../Noun/Key.hpp"
 #include "../Game.hpp"
+#include "../response.hpp"
 #include <string>
 
-string Move(string room, string character, Game* game);
-string Move(Room room, Character character, Game* game);
+dungeonResponse* Move(Player* sender, string direction, Game* game);
 
 #endif

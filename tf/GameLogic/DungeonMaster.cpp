@@ -17,36 +17,34 @@ dungeonResponse* DungeonMaster::processMessage(Player* sender, string message)
 
 	// std::transform(message.begin(), message.front().end(), message.front().begin(), ::tolower);
 	std::transform(message.begin(), message.end(), message.begin(), ::tolower);
-	//TODO:choose a more specific delimiter, or even use space, so the player cam 'just write'
-	vector<string> tokens = split(message, ';');
+	//TODO:choose a more specific delimiter, or even use space, so the player can 'just write'
+	vector<string> tokens = split(message, ' ');
 
 	//TODO: each VERB should receive a dungeonResponse pointer and then set the ACTION, TARGET, MESSAGE and ECHOS
 	//ADVICE: add a player as target or create an echo for it only if it isReady()
-	if(tokens.front() == "examine" && tokens.size()>1){
-		dr->message = Examine(tokens.at(1), this->game);
+	if(tokens.front() == "examinar" && tokens.size()>1){
+		dr = Examine(sender, tokens.at(1), this->game);
 	}
-	else if(tokens.front() == "move" && tokens.size()>2){
-		dr->message = Move(tokens.at(1), tokens.at(2), this->game);
-		dr->action = WAIT;
-		dr->endTurn = true;
+	else if(tokens.front() == "mover" && tokens.size()>1){
+		dr = Move(sender, tokens.at(1), this->game);
 	}
-	else if(tokens.front() == "pick" && tokens.size()>3){
-		dr->message = Pick(tokens.at(1), tokens.at(2), tokens.at(3), this->game);
+	else if(tokens.front() == "pegar" && tokens.size()>1){
+		dr = Pick(sender, tokens.at(1), this->game);
 	}
-	else if(tokens.front() == "drop" && tokens.size()>3){
-		dr->message = Drop(tokens.at(1), tokens.at(2), tokens.at(3), this->game);
+	else if(tokens.front() == "largar" && tokens.size()>1){
+		dr = Drop(sender, tokens.at(1), this->game);
 	}
-	else if(tokens.front() == "use" && tokens.size()>2){
-		dr->message = Use(tokens.at(1), tokens.at(2), this->game);
+	else if(tokens.front() == "usar" && tokens.size()>1){
+		dr = Use(sender, tokens.at(1), this->game);
 	}
-	else if(tokens.front() == "talk" && tokens.size()>2){
-		dr->message = Talk(tokens.at(1), tokens.at(2), this->game);
+	else if(tokens.front() == "falar" && tokens.size()>1){
+		dr = Talk(sender, message.substr(4, string::npos), this->game);
 	}
-	else if(tokens.front() == "whisper" && tokens.size()>3){
-		dr->message = Whisper(tokens.at(1), tokens.at(2), tokens.at(3), this->game);
+	else if(tokens.front() == "cochichar" && tokens.size()>3){
+		dr = Whisper(sender, tokens.back(), message.substr(4, message.size()-tokens.back().size()+1), this->game);
 	}
 	else{
-		dr->message = "Invalid command";
+		dr->message = "Comando invalido";
 	}
 
 	return dr;

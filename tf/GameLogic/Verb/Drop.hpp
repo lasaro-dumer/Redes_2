@@ -5,8 +5,8 @@
 #include "../Noun/Inventory.hpp"
 #include "../Noun/Item.hpp"
 #include "../Game.hpp"
+#include "../response.hpp"
 #include <string>
 
-string Drop(string character, string room, string item, Game* game);
-string Drop(Character character, Room room, Item item, Game* game);
+dungeonResponse* Drop(Player* sender, string item, Game* game);
 #endif

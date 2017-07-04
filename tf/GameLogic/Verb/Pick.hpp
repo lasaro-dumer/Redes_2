@@ -5,9 +5,9 @@
 #include "../Noun/Inventory.hpp"
 #include "../Noun/Item.hpp"
 #include "../Game.hpp"
+#include "../response.hpp"
 #include <string>
 
-string Pick(string character, string room, string item, Game* game);
-string Pick(Character character, Room room, Item item, Game* game);
+dungeonResponse* Pick(Player* sender, string item, Game* game);
 
 #endif

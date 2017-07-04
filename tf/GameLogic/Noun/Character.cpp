@@ -2,10 +2,10 @@
 
 bool Character::Move(int direction)
 {
-	// if(this.location.doors[direction].open)
-	// {
-	// 	this.location = this.location.doors[direction].datRoom;
-	// 	return true;
-	// }
-	//TODO
+  if(this->location->openDoor(direction, this->inventory))
+  {
+    this->location = this->location->doors[direction]->datRoom;
+    return true;
+  }
+  return false;
 }

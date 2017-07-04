@@ -2,9 +2,9 @@
 #define talkH
 #include "../Noun/Character.hpp"
 #include "../Game.hpp"
+#include "../response.hpp"
 #include <string>
 
-string Talk(string character, string message, Game* game);
-string Talk(Character character, string message, Game* game);
+dungeonResponse* Talk(Player* sender, string message, Game* game);
 
 #endif
