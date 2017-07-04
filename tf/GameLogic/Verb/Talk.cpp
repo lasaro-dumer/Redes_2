@@ -1,9 +1,38 @@
 #include "Talk.hpp"
+#include "../response.hpp"
 
-string Talk(string character, string message, Game* game){
-	return "Talk 1";
-}
+dungeonResponse* Talk(Player* sender, string message, Game* game)
+{
+	dungeonResponse* resultMessage;
+	Player* resultC = sender;
+	string character = sender->name;
+	list<Player*> otherPlayers;
+	for(list<Player*>::iterator it=game->players.begin(); it != game->players.end(); ++it)
+	{
+		if((*it)->name != character)
+		{
+			otherPlayers.push_back(*it);
+		}
+	}
+	Room* resultR = resultC->location;
 
-string Talk(Character character, string message, Game* game){
-	return "Talk 2";
+	resultMessage->message = character + " disse: " + message;
+	resultMessage->action = WAIT;
+	resultMessage->endTurn = true;
+	resultMessage->source = resultC;
+	resultMessage->target = resultC;
+	for(list<Player*>::iterator it=otherPlayers.begin(); it != game->players.end(); ++it)
+	{
+		if((*it)->location == resultR)
+		{
+			dungeonResponse* responseMessageAux;
+			responseMessageAux->message = character + " disse: " + message;
+			responseMessageAux->action = WAIT;
+			responseMessageAux->source = resultC;
+			responseMessageAux->target = *it;
+			resultMessage->echos.push_back(responseMessageAux);
+		}
+	}
+
+	return resultMessage;
 }

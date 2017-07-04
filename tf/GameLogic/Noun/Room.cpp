@@ -2,6 +2,8 @@
 
 bool Room::openDoor(int direction, Inventory *opener)
 {
+	if(doors[direction] == nullptr)
+		return false;
 	if(doors[direction]->open)
 	{
 		return true;
