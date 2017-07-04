@@ -4,19 +4,19 @@ dungeonResponse* Move(Player* sender, string direction, Game* game)
 {
 	dungeonResponse* resultMessage;
 	int moveTo = 4;
-	if(direction == "oeste")
+	if(direction == "o")
 	{
 		moveTo = 0;
 	}
-	else if(direction == "norte")
+	else if(direction == "n")
 	{
 		moveTo = 1;
 	}
-	else if(direction == "leste")
+	else if(direction == "l")
 	{
 		moveTo = 2;
 	}
-	else if(direction == "sul")
+	else if(direction == "s")
 	{
 		moveTo = 3;
 	}
