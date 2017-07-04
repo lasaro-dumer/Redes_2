@@ -1,0 +1,1 @@
+A implementação está dividida entre código de jogo e código de comunicação. A comunicação, por sua vez, está dividida entre servidor, cliente e interface de usuário. O código de jogo está dividido entre código de ações e código de objetos de jogo. A comunicação é feita através de socket raw.
