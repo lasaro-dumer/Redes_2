@@ -11,43 +11,47 @@
 #include <netinet/udp.h> //definicao de protocolos
 #include <net/if.h>
 #include <iostream>
+#include <algorithm>
 #include "common.hpp"
 #include "in_cksum.hpp"
 
-bool continueExec;
+bool continueExec = true;
 printer packPrinter;
 usr_action currentState;
 
-instance_info createListenner(char* interface, uint16_t port){
-	instance_info iInfo;
+instance_info* createListenner(char* interface, uint16_t port){
+	instance_info* iInfo = new instance_info();
 	int on;
 	struct ifreq ifr;
-	if((iInfo.listen_socket = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
-		showOutput("Error creating socket.\n");
+	if((iInfo->listen_socket = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
+		showOutput("Error creating socket.");
 		if(errno==EPERM)
-			showOutput("Permition denied.\n");
+			showOutput("Permition denied.");
 		exit(1);
 	}
 
 	strcpy(ifr.ifr_name, interface);
-	if(ioctl(iInfo.listen_socket, SIOCGIFINDEX, &ifr) < 0)
-		showOutput("error in ioctl!\n");
-	ioctl(iInfo.listen_socket, SIOCGIFFLAGS, &ifr);
+	if(ioctl(iInfo->listen_socket, SIOCGIFINDEX, &ifr) < 0)
+		showOutput("error in ioctl!");
+	ioctl(iInfo->listen_socket, SIOCGIFFLAGS, &ifr);
 	ifr.ifr_flags |= IFF_PROMISC;
-	ioctl(iInfo.listen_socket, SIOCSIFFLAGS, &ifr);
+	ioctl(iInfo->listen_socket, SIOCSIFFLAGS, &ifr);
 	ifr.ifr_addr.sa_family = AF_INET;
-	ioctl(iInfo.listen_socket, SIOCGIFADDR, &ifr);
-	iInfo.interface = interface;
-	iInfo.address = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
-	iInfo.port = port;
-
+	ioctl(iInfo->listen_socket, SIOCGIFADDR, &ifr);
+	iInfo->interface = interface;
+	std::cout << "interface:"<<interface << '\n';
+	std::cout << "interface:"<<iInfo->interface << '\n';
+	iInfo->address = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
+	std::cout << "IP: "<<inet_ntoa(iInfo->address) << '\n';
+	iInfo->port = port;
+	iInfo->sequence = 1;
 	return iInfo;
 }
-void startListenner(instance_info iInfo){
+void startListenner(instance_info* iInfo, void *(*start_routine) (void *)){
 	pthread_t listennerThread;
-	if( pthread_create( &listennerThread , NULL ,  listennerHandler , (void*)&iInfo) < 0)
+	if( pthread_create( &listennerThread , NULL ,  start_routine , (void*)iInfo) < 0)
 	{
-		showOutput("could not create thread\n");
+		showOutput("could not create thread");
 		exit(1);
 	}
 }
@@ -55,28 +59,39 @@ void startListenner(instance_info iInfo){
 void* listennerHandler(void* iInfo){
 	instance_info* lstInfo = (struct instance_info*)iInfo;
 	std::stringstream ss;
-	ss << "Listenner Handler for '"<<lstInfo->interface<<"' at "<<inet_ntoa(lstInfo->address)<<":"<<lstInfo->port<<"\n";
+	ss << "Listenner Handler for '"<<lstInfo->interface<<"' at "<<inet_ntoa(lstInfo->address)<<":"<<lstInfo->port<<"";
 	showOutput(ss.str());
 
+	map<unsigned long, vector<int>> senderSeqs;
 	unsigned char buffer[BUFFSIZE];
+
 	while (continueExec) {
 		ssize_t pktSize = recv(lstInfo->listen_socket,(char *) &buffer, sizeof(buffer), 0x0);
 		struct ether_header *etHdr = (struct ether_header *) buffer;
 		if(ntohs(etHdr->ether_type) == ETHERTYPE_IP){
 			struct ip *ipPart = (struct ip *) &buffer[14];
 			if(ipPart->ip_dst.s_addr == lstInfo->address.s_addr){
-				if(ipPart->ip_p == 17){
+				vector<int>::iterator seq = find(senderSeqs[ipPart->ip_src.s_addr].begin(),senderSeqs[ipPart->ip_src.s_addr].end(), ipPart->ip_id);
+				if(ipPart->ip_p == 17 && (seq == senderSeqs[ipPart->ip_src.s_addr].end())){
+					senderSeqs[ipPart->ip_src.s_addr].push_back(ipPart->ip_id);
 					int p = 14 + (ipPart->ip_hl*4);
 					struct udphdr *udpPart = (struct udphdr *)&buffer[p];
 					if(ntohs(udpPart->dest) == lstInfo->port){
-						//showOutput(packPrinter.printUDP(udpPart));
+						// showOutput(packPrinter.printIPv4(ipPart));
+						// showOutput(packPrinter.printUDP(udpPart));
 						p += sizeof(udpPart);
 						int dataLength = (ntohs(udpPart->len)-8);
-						int maxP = p+dataLength;
-						stringstream convertStream;
-						for (int i = p; i < maxP; i++)
-							convertStream << (unsigned char)buffer[i];
-						std::cout << convertStream.str() <<"\n";
+						if(lstInfo->hasProcess){
+							lstInfo->process(&buffer[p], dataLength);
+						}
+						else{
+							int maxP = p+dataLength;
+							stringstream convertStream;
+							convertStream << inet_ntoa(ipPart->ip_src) << ":" << ntohs(udpPart->source) << "> ";
+							for (int i = p; i < maxP; i++)
+								convertStream << (unsigned char)buffer[i];
+							showOutput(convertStream.str());
+						}
 					}
 				}
 			}
@@ -92,11 +107,11 @@ void createSender(unsigned char* buffer, instance_info* iInfo) {
 	iInfo->sender_socket = socket(PF_INET, SOCK_RAW, IPPROTO_UDP);
 	if(iInfo->sender_socket < 0)
 	{
-		showOutput("socket() error\n");
+		showOutput("socket() error");
 		exit(-1);
 	}
 	else
-		showOutput("socket() - Using SOCK_RAW socket and UDP protocol is OK.\n");
+		showOutput("socket() - Using SOCK_RAW socket and UDP protocol is OK.");
 
 	iInfo->sin.sin_family = AF_INET;
 	iInfo->sin.sin_port = htons(iInfo->port);
@@ -107,7 +122,6 @@ void createSender(unsigned char* buffer, instance_info* iInfo) {
 	iphdr->ip_tos = 16; //tipe os service, Low delay
 	//will evaluate ip_len on sent
 	// iphdr->ip_len = sizeof(struct ip) + sizeof(struct udphdr);
-	iphdr->ip_id = htons(54321);
 	iphdr->ip_ttl = 64; // hops
 	iphdr->ip_p = 17; // UDP
 	iphdr->ip_src.s_addr = iInfo->sin.sin_addr.s_addr;//sourceIP
@@ -122,11 +136,11 @@ void createSender(unsigned char* buffer, instance_info* iInfo) {
 	const int *val = &one;
 	if(setsockopt(iInfo->sender_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) < 0)
 	{
-		showOutput("setsockopt() error\n");
+		showOutput("setsockopt() error");
 		exit(-1);
 	}
 	else
-		showOutput("setsockopt() is OK.\n");
+		showOutput("setsockopt() is OK.");
 	iInfo->datagramStart = sizeof(struct ip) + sizeof(struct udphdr);
 	iInfo->iphdrBase = iphdr;
 	iInfo->udpBase = udp;
@@ -138,6 +152,7 @@ void sendDataTo(unsigned char* buffer, instance_info* iInfo, string targeIP, str
 	din.sin_port = htons(atoi(targePort.c_str()));
 	din.sin_addr.s_addr = inet_addr(targeIP.c_str());
 
+	iInfo->iphdrBase->ip_id = htons(iInfo->sequence++);
 	iInfo->iphdrBase->ip_dst.s_addr = din.sin_addr.s_addr;//targeIP
 	iInfo->udpBase->dest = din.sin_port;
 
@@ -154,7 +169,10 @@ void sendDataTo(unsigned char* buffer, instance_info* iInfo, string targeIP, str
 	if(sendto(iInfo->sender_socket, buffer, iInfo->iphdrBase->ip_len, 0, (struct sockaddr *)&iInfo->sin, sizeof(iInfo->sin)) < 0)
 	// Verify
 	{
-		showOutput("sendto() error\n");
+		showOutput("sendto() error");
 		exit(-1);
 	}
+	// else{
+	// 	showOutput("sent data");
+	// }
 }

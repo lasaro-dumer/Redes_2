@@ -30,7 +30,7 @@ void initCurses(){
 
 void showOutput(string text, bool clearScr){
 	#ifndef PCUR
-	cout << text.c_str() << endl;
+	cout << text << endl << flush;
 	#else
 	move(0,0);
 	if(clearScr){

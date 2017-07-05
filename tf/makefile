@@ -1,6 +1,6 @@
 CC=g++
 CPPFLAGS= -std=c++11 -lpthread -lncurses
-BASIC = screen.cpp util.cpp common.cpp in_cksum.cpp GameLogic/response.cpp
+BASIC = screen.cpp util.cpp printer.cpp common.cpp in_cksum.cpp GameLogic/response.cpp
 BACKEND = GameLogic/DungeonMaster.cpp GameLogic/Game.cpp GameLogic/Noun/*.cpp GameLogic/Verb/*.cpp
 default: server client
 server:

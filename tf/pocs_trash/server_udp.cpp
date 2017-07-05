@@ -16,7 +16,6 @@
 
 #include "util.hpp"
 #include "screen.hpp"
-#include "common.hpp"
 #include "GameLogic/Game.hpp"
 #include "GameLogic/DungeonMaster.hpp"
 #include "GameLogic/Noun/Player.hpp"
@@ -25,7 +24,10 @@
 
 using namespace std;
 
+bool continueExec = true;
+
 void *connection_handler(void *);
+static void finish(int sig);
 int socket_desc, currentPlayer = 0;
 
 map<long int, Player*> players;
@@ -33,9 +35,8 @@ DungeonMaster dmaster;
 
 int main(int argc , char *argv[])
 {
-	continueExec = true;
 	int new_socket , c , *new_sock;
-	struct sockaddr_in server , client;
+	struct sockaddr_in server, client;
 	string message;
 
 	#ifdef PCUR
@@ -52,7 +53,7 @@ int main(int argc , char *argv[])
 	//Prepare the sockaddr_in structure
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons( SERVER_PORT );
+	server.sin_port = htons(SERVER_PORT);
 
 	//Bind
 	if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
@@ -63,7 +64,7 @@ int main(int argc , char *argv[])
 		return 1;
 	}
 	stringstream ss;
-	ss << "Server listenning at " << inet_ntoa(server.sin_addr) << ":" << SERVER_PORT << endl;
+	ss << "Server listenning at " << SERVER_PORT << endl;
 	showOutput(ss.str());
 	(void) signal(SIGINT, finish);	  /* arrange interrupts to terminate */
 
@@ -112,6 +113,11 @@ int main(int argc , char *argv[])
 	return 0;
 }
 
+static void finish(int sig)
+{
+	continueExec = false;
+	close(socket_desc);
+}
 /*
  * This will handle connection for each client
  * */

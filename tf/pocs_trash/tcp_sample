@@ -1,0 +1,342 @@
+No.     Time           Source                Destination           Protocol Length Info
+   3278 584.070464000  127.0.0.1             127.0.0.1             TCP      76     46662→8888 [SYN] Seq=0 Win=43690 Len=0 MSS=65495 SACK_PERM=1 TSval=17962254 TSecr=0 WS=128
+
+Frame 3278: 76 bytes on wire (608 bits), 76 bytes captured (608 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 46662 (46662), Dst Port: 8888 (8888), Seq: 0, Len: 0
+    Source Port: 46662 (46662)
+    Destination Port: 8888 (8888)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 0    (relative sequence number)
+    Acknowledgment number: 0
+    Header Length: 40 bytes
+    .... 0000 0000 0010 = Flags: 0x002 (SYN)
+    Window size value: 43690
+    [Calculated window size: 43690]
+    Checksum: 0xfe30 [validation disabled]
+    Urgent pointer: 0
+    Options: (20 bytes), Maximum segment size, SACK permitted, Timestamps, No-Operation (NOP), Window scale
+
+No.     Time           Source                Destination           Protocol Length Info
+   3279 584.070482000  127.0.0.1             127.0.0.1             TCP      76     8888→46662 [SYN, ACK] Seq=0 Ack=1 Win=43690 Len=0 MSS=65495 SACK_PERM=1 TSval=17962254 TSecr=17962254 WS=128
+
+Frame 3279: 76 bytes on wire (608 bits), 76 bytes captured (608 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 8888 (8888), Dst Port: 46662 (46662), Seq: 0, Ack: 1, Len: 0
+    Source Port: 8888 (8888)
+    Destination Port: 46662 (46662)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 0    (relative sequence number)
+    Acknowledgment number: 1    (relative ack number)
+    Header Length: 40 bytes
+    .... 0000 0001 0010 = Flags: 0x012 (SYN, ACK)
+    Window size value: 43690
+    [Calculated window size: 43690]
+    Checksum: 0xfe30 [validation disabled]
+    Urgent pointer: 0
+    Options: (20 bytes), Maximum segment size, SACK permitted, Timestamps, No-Operation (NOP), Window scale
+    [SEQ/ACK analysis]
+        [This is an ACK to the segment in frame: 3278]
+        [The RTT to ACK the segment was: 0.000018000 seconds]
+        [iRTT: 0.000037000 seconds]
+
+No.     Time           Source                Destination           Protocol Length Info
+   3280 584.070501000  127.0.0.1             127.0.0.1             TCP      68     46662→8888 [ACK] Seq=1 Ack=1 Win=43776 Len=0 TSval=17962254 TSecr=17962254
+
+Frame 3280: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 46662 (46662), Dst Port: 8888 (8888), Seq: 1, Ack: 1, Len: 0
+    Source Port: 46662 (46662)
+    Destination Port: 8888 (8888)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 1    (relative sequence number)
+    Acknowledgment number: 1    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0000 = Flags: 0x010 (ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe28 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [This is an ACK to the segment in frame: 3279]
+        [The RTT to ACK the segment was: 0.000019000 seconds]
+        [iRTT: 0.000037000 seconds]
+
+No.     Time           Source                Destination           Protocol Length Info
+   3281 584.070900000  127.0.0.1             127.0.0.1             TCP      103    8888→46662 [PSH, ACK] Seq=1 Ack=1 Win=43776 Len=35 TSval=17962254 TSecr=17962254
+
+Frame 3281: 103 bytes on wire (824 bits), 103 bytes captured (824 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 8888 (8888), Dst Port: 46662 (46662), Seq: 1, Ack: 1, Len: 35
+    Source Port: 8888 (8888)
+    Destination Port: 46662 (46662)
+    [Stream index: 40]
+    [TCP Segment Len: 35]
+    Sequence number: 1    (relative sequence number)
+    [Next sequence number: 36    (relative sequence number)]
+    Acknowledgment number: 1    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 1000 = Flags: 0x018 (PSH, ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe4b [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [iRTT: 0.000037000 seconds]
+        [Bytes in flight: 35]
+Data (35 bytes)
+
+0000  48 65 6c 6c 6f 20 50 6c 61 79 65 72 20 31 2e 20   Hello Player 1. 
+0010  57 68 61 74 20 69 73 20 79 6f 75 72 20 6e 61 6d   What is your nam
+0020  65 3f 0a                                          e?.
+    Data: 48656c6c6f20506c6179657220312e205768617420697320...
+    [Length: 35]
+
+No.     Time           Source                Destination           Protocol Length Info
+   3282 584.070981000  127.0.0.1             127.0.0.1             TCP      68     46662→8888 [ACK] Seq=1 Ack=36 Win=43776 Len=0 TSval=17962254 TSecr=17962254
+
+Frame 3282: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 46662 (46662), Dst Port: 8888 (8888), Seq: 1, Ack: 36, Len: 0
+    Source Port: 46662 (46662)
+    Destination Port: 8888 (8888)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 1    (relative sequence number)
+    Acknowledgment number: 36    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0000 = Flags: 0x010 (ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe28 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [This is an ACK to the segment in frame: 3281]
+        [The RTT to ACK the segment was: 0.000081000 seconds]
+        [iRTT: 0.000037000 seconds]
+
+No.     Time           Source                Destination           Protocol Length Info
+   3760 734.895308000  127.0.0.1             127.0.0.1             TCP      80     46662→8888 [PSH, ACK] Seq=1 Ack=36 Win=43776 Len=12 TSval=17999960 TSecr=17962254
+
+Frame 3760: 80 bytes on wire (640 bits), 80 bytes captured (640 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 46662 (46662), Dst Port: 8888 (8888), Seq: 1, Ack: 36, Len: 12
+    Source Port: 46662 (46662)
+    Destination Port: 8888 (8888)
+    [Stream index: 40]
+    [TCP Segment Len: 12]
+    Sequence number: 1    (relative sequence number)
+    [Next sequence number: 13    (relative sequence number)]
+    Acknowledgment number: 36    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 1000 = Flags: 0x018 (PSH, ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe34 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [iRTT: 0.000037000 seconds]
+        [Bytes in flight: 12]
+Data (12 bytes)
+
+0000  6c 61 73 61 72 6f 20 64 75 6d 65 72               lasaro dumer
+    Data: 6c617361726f2064756d6572
+    [Length: 12]
+
+No.     Time           Source                Destination           Protocol Length Info
+   3761 734.895370000  127.0.0.1             127.0.0.1             TCP      68     8888→46662 [ACK] Seq=36 Ack=13 Win=43776 Len=0 TSval=17999960 TSecr=17999960
+
+Frame 3761: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 8888 (8888), Dst Port: 46662 (46662), Seq: 36, Ack: 13, Len: 0
+    Source Port: 8888 (8888)
+    Destination Port: 46662 (46662)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 36    (relative sequence number)
+    Acknowledgment number: 13    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0000 = Flags: 0x010 (ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe28 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [This is an ACK to the segment in frame: 3760]
+        [The RTT to ACK the segment was: 0.000062000 seconds]
+        [iRTT: 0.000037000 seconds]
+
+No.     Time           Source                Destination           Protocol Length Info
+   3762 734.895599000  127.0.0.1             127.0.0.1             TCP      111    8888→46662 [PSH, ACK] Seq=36 Ack=13 Win=43776 Len=43 TSval=17999960 TSecr=17999960
+
+Frame 3762: 111 bytes on wire (888 bits), 111 bytes captured (888 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 8888 (8888), Dst Port: 46662 (46662), Seq: 36, Ack: 13, Len: 43
+    Source Port: 8888 (8888)
+    Destination Port: 46662 (46662)
+    [Stream index: 40]
+    [TCP Segment Len: 43]
+    Sequence number: 36    (relative sequence number)
+    [Next sequence number: 79    (relative sequence number)]
+    Acknowledgment number: 13    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 1000 = Flags: 0x018 (PSH, ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe53 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [iRTT: 0.000037000 seconds]
+        [Bytes in flight: 43]
+Data (43 bytes)
+
+0000  30 7c 54 68 61 6e 6b 73 20 6c 61 73 61 72 6f 20   0|Thanks lasaro 
+0010  64 75 6d 65 72 2c 20 6e 6f 77 20 77 61 69 74 20   dumer, now wait 
+0020  79 6f 75 72 20 74 75 72 6e 2e 0a                  your turn..
+    Data: 307c5468616e6b73206c617361726f2064756d65722c206e...
+    [Length: 43]
+
+No.     Time           Source                Destination           Protocol Length Info
+   3763 734.895640000  127.0.0.1             127.0.0.1             TCP      68     46662→8888 [ACK] Seq=13 Ack=79 Win=43776 Len=0 TSval=17999960 TSecr=17999960
+
+Frame 3763: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 46662 (46662), Dst Port: 8888 (8888), Seq: 13, Ack: 79, Len: 0
+    Source Port: 46662 (46662)
+    Destination Port: 8888 (8888)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 13    (relative sequence number)
+    Acknowledgment number: 79    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0000 = Flags: 0x010 (ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe28 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [This is an ACK to the segment in frame: 3762]
+        [The RTT to ACK the segment was: 0.000041000 seconds]
+        [iRTT: 0.000037000 seconds]
+
+No.     Time           Source                Destination           Protocol Length Info
+   4300 883.448663000  127.0.0.1             127.0.0.1             TCP      68     46662→8888 [FIN, ACK] Seq=13 Ack=79 Win=43776 Len=0 TSval=18037099 TSecr=17999960
+
+Frame 4300: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 46662 (46662), Dst Port: 8888 (8888), Seq: 13, Ack: 79, Len: 0
+    Source Port: 46662 (46662)
+    Destination Port: 8888 (8888)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 13    (relative sequence number)
+    Acknowledgment number: 79    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0001 = Flags: 0x011 (FIN, ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe28 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+
+No.     Time           Source                Destination           Protocol Length Info
+   4301 883.488087000  127.0.0.1             127.0.0.1             TCP      68     8888→46662 [ACK] Seq=79 Ack=14 Win=43776 Len=0 TSval=18037109 TSecr=18037099
+
+Frame 4301: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 8888 (8888), Dst Port: 46662 (46662), Seq: 79, Ack: 14, Len: 0
+    Source Port: 8888 (8888)
+    Destination Port: 46662 (46662)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 79    (relative sequence number)
+    Acknowledgment number: 14    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0000 = Flags: 0x010 (ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe28 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [This is an ACK to the segment in frame: 4300]
+        [The RTT to ACK the segment was: 0.039424000 seconds]
+        [iRTT: 0.000037000 seconds]
+
+No.     Time           Source                Destination           Protocol Length Info
+   4363 902.328124000  127.0.0.1             127.0.0.1             TCP      68     8888→46662 [FIN, ACK] Seq=79 Ack=14 Win=43776 Len=0 TSval=18041819 TSecr=18037099
+
+Frame 4363: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 8888 (8888), Dst Port: 46662 (46662), Seq: 79, Ack: 14, Len: 0
+    Source Port: 8888 (8888)
+    Destination Port: 46662 (46662)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 79    (relative sequence number)
+    Acknowledgment number: 14    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0001 = Flags: 0x011 (FIN, ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0xfe28 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+
+No.     Time           Source                Destination           Protocol Length Info
+   4364 902.328161000  127.0.0.1             127.0.0.1             TCP      68     46662→8888 [ACK] Seq=14 Ack=80 Win=43776 Len=0 TSval=18041819 TSecr=18041819
+
+Frame 4364: 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface 0
+Linux cooked capture
+Internet Protocol Version 4, Src: 127.0.0.1 (127.0.0.1), Dst: 127.0.0.1 (127.0.0.1)
+Transmission Control Protocol, Src Port: 46662 (46662), Dst Port: 8888 (8888), Seq: 14, Ack: 80, Len: 0
+    Source Port: 46662 (46662)
+    Destination Port: 8888 (8888)
+    [Stream index: 40]
+    [TCP Segment Len: 0]
+    Sequence number: 14    (relative sequence number)
+    Acknowledgment number: 80    (relative ack number)
+    Header Length: 32 bytes
+    .... 0000 0001 0000 = Flags: 0x010 (ACK)
+    Window size value: 342
+    [Calculated window size: 43776]
+    [Window size scaling factor: 128]
+    Checksum: 0x1cd9 [validation disabled]
+    Urgent pointer: 0
+    Options: (12 bytes), No-Operation (NOP), No-Operation (NOP), Timestamps
+    [SEQ/ACK analysis]
+        [This is an ACK to the segment in frame: 4363]
+        [The RTT to ACK the segment was: 0.000037000 seconds]
+        [iRTT: 0.000037000 seconds]

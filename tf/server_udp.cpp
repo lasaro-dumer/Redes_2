@@ -13,6 +13,9 @@
 #include<pthread.h> //for threading , link with lpthread
 #include <map>
 #include <stdbool.h>
+#include <netinet/ether.h> //header ethernet
+#include <netinet/ip.h> //definicao de protocolos
+#include <netinet/udp.h> //definicao de protocolos
 
 #include "util.hpp"
 #include "screen.hpp"
@@ -26,14 +29,15 @@
 using namespace std;
 
 void *connection_handler(void *);
-int socket_desc, currentPlayer = 0;
+void serverProcess(unsigned char* data, int length);
+int currentPlayer = 0;
 
 map<long int, Player*> players;
 DungeonMaster dmaster;
+unsigned char buffer[BUFFSIZE];
 
 int main(int argc , char *argv[])
 {
-	continueExec = true;
 	int new_socket , c , *new_sock;
 	struct sockaddr_in server , client;
 	string message;
@@ -42,38 +46,21 @@ int main(int argc , char *argv[])
 	initCurses();
 	#endif
 
-	//Create socket
-	socket_desc = socket(AF_INET , SOCK_STREAM , 0);
-	if (socket_desc == -1)
-	{
-		showOutput("Could not create socket");
+	showOutput("argc: argc\n");
+	if(argc < 3){
+		showOutput("- Invalid parameters!!!\n");
+		showOutput(string("- Usage ")+string(argv[0])+string(" <Network Interface> <UDP Port>\n"));
+		exit(1);
 	}
-
-	//Prepare the sockaddr_in structure
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons( SERVER_PORT );
-
-	//Bind
-	if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
-	{
-		stringstream ss;
-		ss << "bind failed. error " << errno <<"-"<< strerror(errno) << endl;
-		showOutput(ss.str());
-		return 1;
-	}
-	stringstream ss;
-	ss << "Server listenning at " << inet_ntoa(server.sin_addr) << ":" << SERVER_PORT << endl;
-	showOutput(ss.str());
+	continueExec = true;
 	(void) signal(SIGINT, finish);	  /* arrange interrupts to terminate */
 
-	//Listen
-	listen(socket_desc , 3);
+	instance_info* iInfo = createListenner(argv[1], atoi(argv[2]));
+	createSender(buffer, iInfo);
+	iInfo->setProcess(serverProcess);
+	startListenner(iInfo);
 
-	//Accept and incoming connection
-	showOutput("Waiting players...");
-	c = sizeof(struct sockaddr_in);
-	while((new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
+	while(continueExec)
 	{
 		showOutput("New player. Connection accepted.");
 
@@ -110,6 +97,10 @@ int main(int argc , char *argv[])
 	endwin();
 	#endif
 	return 0;
+}
+
+void serverProcess(unsigned char* data, int length){
+
 }
 
 /*

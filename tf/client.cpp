@@ -52,20 +52,27 @@ int main(int argc , char *argv[])
 
 	int read_size;
 	//Receive a reply from the server
-	while( (read_size = recv(socket_desc , server_reply, SIZE_LIMIT , 0)) > 0 ){
-		showOutput(server_reply, true);
-		//Send some data
-		string line;
-		#ifdef PCUR
-		line = getstring();
-		#else
-		getline(cin, line);
-		#endif
-		if( send(socket_desc , line.data() , line.size() , 0) < 0)
-		{
-			showOutput("Send failed");
-			finish(0);
-			return 1;
+	while((read_size = recv(socket_desc , server_reply, SIZE_LIMIT , 0)) > 0 ){
+		showOutput("received");
+		dungeonResponse* dr = dungeonResponse::parse(server_reply);
+		showOutput(dr->message, true);
+		if(dr->action == PLAY){
+			//Send some data
+			string line;
+			#ifdef PCUR
+			line = getstring();
+			#else
+			getline(cin, line);
+			#endif
+			if( send(socket_desc , line.data() , line.size() , 0) < 0)
+			{
+				showOutput("Send failed");
+				finish(0);
+				return 1;
+			}
+		}
+		else{
+			showOutput("You will wait for now.");
 		}
 		memset(server_reply, 0, sizeof(server_reply));
 	}

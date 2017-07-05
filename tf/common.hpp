@@ -17,29 +17,18 @@
 #include "printer.hpp"
 #include "screen.hpp"
 #include "GameLogic/response.hpp"
+#include "instance.hpp"
 
 #define BUFFSIZE 1518
-
-struct instance_info {
-	int listen_socket;
-	int sender_socket;
-	struct sockaddr_in sin;
-	struct ip *iphdrBase;
-	struct udphdr *udpBase;
-	int datagramStart;
-	char* interface;
-	struct in_addr address;
-	uint16_t port;
-};
 
 extern bool continueExec;
 extern printer packPrinter;
 extern usr_action currentState;
 
-instance_info createListenner(char* interface, uint16_t myPort);
+instance_info* createListenner(char* interface, uint16_t myPort);
 void createSender(unsigned char* buffer, instance_info* iInfo);
 void *listennerHandler(void *iInfo);
-void startListenner(instance_info iInfo);
+void startListenner(instance_info* iInfo, void *(*start_routine) (void *) = listennerHandler);
 void sendDataTo(unsigned char* buffer, instance_info* iInfo, string targeIP, string targePort, string data);
 static void finish(int sig)
 {
